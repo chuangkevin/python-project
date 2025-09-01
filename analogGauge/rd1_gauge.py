@@ -64,10 +64,36 @@ class RD1Gauge:
         # 動畫狀態 (用於平滑過渡)
         self.target_values = self.current_values.copy()
         self.animation_values = {k: float(v) for k, v in self.current_values.items()}
-        self.animation_speed = 0.04  # 超慢動畫速度配合120fps
+        self.animation_speed = 0.08  # 加快動畫速度，更流暢
         
         # 超細緻化步進 - 每個整數值之間插入更多中間步驟
-        self.interpolation_steps = 50  # 每個整數間隔分為50個子步驟
+        self.interpolation_steps = 100  # 增加插值步驟，更流暢
+        
+    def configure_gauge_dynamic(self, gauge_type: str, gauge_purpose: str, values: List[str], 
+                               color: tuple = None) -> bool:
+        """
+        動態配置錶盤，保持原有的視覺風格
+        
+        Args:
+            gauge_type: 錶盤類型 ("SHOTS", "WB", "BATTERY", "QUALITY")
+            gauge_purpose: 錶盤用途/名稱
+            values: 錶盤數值列表
+            color: 指針顏色 (R, G, B)，可選
+            
+        Returns:
+            bool: 配置是否成功
+        """
+        if gauge_type not in self.GAUGE_CONFIGS:
+            return False
+            
+        # 更新配置，保持原有結構
+        original_config = self.GAUGE_CONFIGS[gauge_type].copy()
+        self.GAUGE_CONFIGS[gauge_type]["name"] = gauge_purpose
+        self.GAUGE_CONFIGS[gauge_type]["values"] = values
+        if color:
+            self.GAUGE_CONFIGS[gauge_type]["color"] = color
+            
+        return True
         
     def set_value(self, gauge_type: str, value: Union[int, str]) -> bool:
         """
@@ -253,8 +279,9 @@ class RD1Gauge:
                      cx + main_radius, cy + main_radius),
                     fill=(25, 25, 25), outline=(180, 180, 180), width=3)
         
-        # 繪製外圈刻度 (E, 5, 15, 20, 50, 100, 500)
-        shots_values = ["E", "5", "15", "20", "50", "100", "500"]
+        # 繪製外圈刻度 - 使用 SHOTS 配置的數值
+        shots_config = self.GAUGE_CONFIGS["SHOTS"]
+        shots_values = shots_config["values"]
         for i, value in enumerate(shots_values):
             angle_deg = -150 + (300 * i / (len(shots_values) - 1))  # 分佈在300度範圍
             angle = math.radians(angle_deg)
@@ -270,7 +297,7 @@ class RD1Gauge:
             draw.line((tick_start_x, tick_start_y, tick_end_x, tick_end_y), 
                      fill=(200, 200, 200), width=2)
             
-            # 數值標籤移到錶盤外圍 (像照片一樣)
+            # 數值標籤移到錶盤外圍 (使用動態配置的數值)
             label_r = main_radius + 15  # 移到外圍
             label_x = cx + int(label_r * math.cos(angle))
             label_y = cy + int(label_r * math.sin(angle))
@@ -281,25 +308,25 @@ class RD1Gauge:
         
         # 移除底部 SHOTS 標籤 (不需要)
         
-        # 三個小錶盤區域 (恢復之前的完美位置)
+        # 三個小錶盤區域 - 使用動態配置
         small_gauge_radius = 90  # 恢復之前的大小
         small_gauges = {
-            # 左上小錶盤 (WB 白平衡)
+            # 左上小錶盤 (WB -> RAM)
             "WB": {
                 "center": (cx - 110, cy - 50),  # 恢復之前位置
-                "values": ["A", "☀", "⛅", "☁", "💡"],
+                "values": self.GAUGE_CONFIGS["WB"]["values"],
                 "current_index": self.animation_values["WB"]
             },
-            # 右上小錶盤 (Quality 品質)
+            # 右上小錶盤 (Quality -> 硬碟)
             "QUALITY": {
                 "center": (cx + 110, cy - 50),  # 恢復之前位置
-                "values": ["R", "H", "N"],
+                "values": self.GAUGE_CONFIGS["QUALITY"]["values"],
                 "current_index": self.animation_values["QUALITY"]
             },
-            # 中下小錶盤 (Battery 電池)
+            # 中下小錶盤 (Battery -> 網路)
             "BATTERY": {
                 "center": (cx, cy + 110),  # 恢復之前位置
-                "values": ["E", "1/4", "1/2", "3/4", "F"],
+                "values": self.GAUGE_CONFIGS["BATTERY"]["values"],
                 "current_index": self.animation_values["BATTERY"]
             }
         }
