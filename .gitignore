@@ -170,3 +170,4 @@ venv/
 env/
 .venv/
 .env/
+analogGauge/__pycache__
