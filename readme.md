@@ -6,6 +6,63 @@
 - **旋轉編碼器**：模擬相機轉盤
 - **五向按鈕**：模擬方向鍵與功能鍵
 
+## 🎯 RD-1 類比錶盤系統
+
+本專案現已實現高精度的 Epson RD-1 類比錶盤模擬系統，位於 `analogGauge/` 目錄：
+
+### 系統特色
+- **像素級精確復刻**：基於真實 RD-1 相機照片精確重現錶盤佈局
+- **超流暢 120fps 動畫**：微步插值動畫系統，8.3ms 更新間隔
+- **四個獨立錶盤**：
+  - **SHOTS (拍攝數)**：360° 圓形錶盤，外圍刻度標示
+  - **WHITE BALANCE (白平衡)**：90° 扇形錶盤，左上角位置
+  - **BATTERY (電池電量)**：90° 扇形錶盤，中下方位置，向上指向
+  - **QUALITY (影像品質)**：90° 扇形錶盤，右上角位置
+
+### 技術架構
+- **核心模組**：`rd1_gauge.py` - RD1Gauge 類別實現
+- **測試界面**：`test_ui.py` - 多模式測試 UI (整合/2x2/單一顯示)
+- **動畫引擎**：線性插值 + 微步進系統
+- **反鋸齒渲染**：多層線條重疊技術
+- **即時調整**：Tkinter 滑桿控制各錶盤數值
+
+### 使用方式
+
+```python
+from analogGauge.rd1_gauge import RD1Gauge
+
+# 創建錶盤實例
+gauge = RD1Gauge()
+
+# 設定數值 (索引方式)
+gauge.set_value("SHOTS", 2)    # "20"
+gauge.set_value("WB", 1)       # "☀" (晴天)
+gauge.set_value("BATTERY", 3)  # "3/4"
+gauge.set_value("QUALITY", 1)  # "H" (高品質)
+
+# 更新動畫 (建議 120fps 循環調用)
+gauge.update_animation()
+
+# 生成整合錶盤圖像
+img = gauge.draw_integrated_rd1_display()
+img.show()
+```
+
+### 測試界面
+
+執行測試程式體驗完整功能：
+
+```bash
+cd analogGauge
+python test_ui.py
+```
+
+測試界面提供：
+- 四個錶盤的即時數值調整滑桿
+- 三種顯示模式切換 (整合/2x2/單一)
+- 120fps 流暢動畫預覽
+- 當前數值狀態顯示
+
 ---
 
 ## 🛠 安裝步驟
