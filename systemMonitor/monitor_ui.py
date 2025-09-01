@@ -15,9 +15,9 @@ class SystemMonitorUI:
     
     def __init__(self):
         self.root = tk.Tk()
-        self.root.title("系統監控 - RD-1 風格錶盤")
-        # 調整視窗大小適應錶盤顯示
-        self.root.geometry("520x720")
+        self.root.title("Usage Monitor")
+        # 調整視窗大小適應錶盤顯示 (預設為收合狀態)
+        self.root.geometry("520x520")
         self.root.configure(bg='#f0f0f0')
         self.root.resizable(True, True)  # 允許調整大小
         
@@ -35,7 +35,7 @@ class SystemMonitorUI:
         # 主標題
         title_label = tk.Label(
             self.root, 
-            text="🖥️ 系統監控 - RD-1 風格錶盤", 
+            text="🖥️ Usage Monitor", 
             font=('Arial', 16, 'bold'),
             bg='#f0f0f0'
         )
@@ -101,14 +101,36 @@ class SystemMonitorUI:
         )
         self.label_button.pack(side='left', padx=5)
         
-        # 詳細資訊區域
+        # 折疊控制按鈕區域
+        collapse_control_frame = tk.Frame(self.root, bg='#f0f0f0')
+        collapse_control_frame.pack(pady=5)
+        
+        self.collapse_button = tk.Button(
+            collapse_control_frame,
+            text="� 顯示詳細資訊",  # 預設為隱藏狀態的按鈕文字
+            command=self.toggle_details,
+            bg='#9E9E9E',
+            fg='white',
+            font=('Arial', 10, 'bold'),
+            width=15
+        )
+        self.collapse_button.pack()
+        
+        # 可收合的詳細資訊容器 (預設隱藏)
+        self.details_container = tk.Frame(self.root, bg='#f0f0f0')
+        # 不使用 pack()，讓它一開始就隱藏
+        
+        # 詳細資訊區域 (移到容器內)
         info_frame = tk.LabelFrame(
-            self.root, 
+            self.details_container, 
             text="詳細系統資訊",
             bg='#f0f0f0',
             font=('Arial', 11, 'bold')
         )
         info_frame.pack(pady=10, padx=20, fill='x')
+        
+        # 控制收合狀態 (預設為隱藏)
+        self.details_visible = False
         
         # 系統資訊標籤
         self.info_labels = {}
@@ -143,9 +165,9 @@ class SystemMonitorUI:
             )
             self.info_labels[key].grid(row=row, column=col+1, sticky='w', padx=5, pady=2)
         
-        # 狀態列
+        # 狀態列 (移到容器內)
         self.status_label = tk.Label(
-            self.root,
+            self.details_container,
             text="💡 點擊「開始監控」開始即時系統監控",
             font=('Arial', 10),
             bg='#f0f0f0',
@@ -189,6 +211,23 @@ class SystemMonitorUI:
             self.label_button.config(text="🏷️ 隱藏標籤")
         else:
             self.label_button.config(text="🏷️ 顯示標籤")
+    
+    def toggle_details(self):
+        """切換詳細資訊顯示狀態"""
+        if self.details_visible:
+            # 隱藏詳細資訊
+            self.details_container.pack_forget()
+            self.collapse_button.config(text="🔼 顯示詳細資訊")
+            self.details_visible = False
+            # 調整視窗大小以適應收合狀態
+            self.root.geometry("520x520")
+        else:
+            # 顯示詳細資訊
+            self.details_container.pack(fill='both', expand=True)
+            self.collapse_button.config(text="🔽 隱藏詳細資訊")
+            self.details_visible = True
+            # 恢復原始視窗大小
+            self.root.geometry("520x720")
         
     def manual_refresh(self):
         """手動重新整理"""
