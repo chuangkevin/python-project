@@ -64,7 +64,10 @@ class RD1Gauge:
         # 動畫狀態 (用於平滑過渡)
         self.target_values = self.current_values.copy()
         self.animation_values = {k: float(v) for k, v in self.current_values.items()}
-        self.animation_speed = 0.15  # 動畫速度 (0.1 = 慢, 1.0 = 快)
+        self.animation_speed = 0.04  # 超慢動畫速度配合120fps
+        
+        # 超細緻化步進 - 每個整數值之間插入更多中間步驟
+        self.interpolation_steps = 50  # 每個整數間隔分為50個子步驟
         
     def set_value(self, gauge_type: str, value: Union[int, str]) -> bool:
         """
@@ -105,15 +108,24 @@ class RD1Gauge:
         return config["values"][index]
     
     def update_animation(self):
-        """更新動畫狀態"""
+        """更新動畫狀態 - 細緻化插值"""
         for gauge_type in self.GAUGE_CONFIGS:
             current = self.animation_values[gauge_type]
             target = float(self.target_values[gauge_type])
             
-            # 線性插值動畫
+            # 計算更細緻的步進
             diff = target - current
-            if abs(diff) > 0.001:  # 避免無限小數
-                self.animation_values[gauge_type] += diff * self.animation_speed
+            
+            if abs(diff) > 0.001:  # 極小閾值確保超完美平滑
+                # 使用極小步進配合120fps
+                step_size = diff * self.animation_speed
+                
+                # 限制單次步進的最大值，配合120fps的極小移動
+                max_step = 0.008  # 極小的單次最大移動距離
+                if abs(step_size) > max_step:
+                    step_size = max_step if step_size > 0 else -max_step
+                
+                self.animation_values[gauge_type] += step_size
             else:
                 self.animation_values[gauge_type] = target
     
@@ -234,7 +246,7 @@ class RD1Gauge:
         draw = ImageDraw.Draw(img)
         
         cx = cy = canvas_size // 2
-        main_radius = 150  # 縮小主錶盤半徑讓整體更緊湊
+        main_radius = 140  # 縮小主錶盤半徑讓整體更緊湊
         
         # 繪製主要錶盤外框 (黑色錶盤，類似照片)
         draw.ellipse((cx - main_radius, cy - main_radius, 
@@ -269,24 +281,24 @@ class RD1Gauge:
         
         # 移除底部 SHOTS 標籤 (不需要)
         
-        # 三個小錶盤區域 (根據照片真實比例，小錶盤應該更大)
-        small_gauge_radius = 90  # 約主錶盤的一半大小
+        # 三個小錶盤區域 (恢復之前的完美位置)
+        small_gauge_radius = 90  # 恢復之前的大小
         small_gauges = {
             # 左上小錶盤 (WB 白平衡)
             "WB": {
-                "center": (cx - 110, cy - 50),  # 確保不重疊的左上位置
+                "center": (cx - 110, cy - 50),  # 恢復之前位置
                 "values": ["A", "☀", "⛅", "☁", "💡"],
                 "current_index": self.animation_values["WB"]
             },
             # 右上小錶盤 (Quality 品質)
             "QUALITY": {
-                "center": (cx + 110, cy - 50),  # 確保不重疊的右上位置
+                "center": (cx + 110, cy - 50),  # 恢復之前位置
                 "values": ["R", "H", "N"],
                 "current_index": self.animation_values["QUALITY"]
             },
             # 中下小錶盤 (Battery 電池)
             "BATTERY": {
-                "center": (cx, cy + 110),  # 往下調整避免重疊
+                "center": (cx, cy + 110),  # 恢復之前位置
                 "values": ["E", "1/4", "1/2", "3/4", "F"],
                 "current_index": self.animation_values["BATTERY"]
             }
@@ -366,9 +378,14 @@ class RD1Gauge:
             # 指針顏色
             needle_color = self.GAUGE_CONFIGS[gauge_type]["color"]
             
-            # 繪製指針
+            # 繪製更平滑的指針 (使用多重線條模擬抗鋸齒)
+            # 主指針線條
             draw.line((gx, gy, needle_x, needle_y), 
-                     fill=needle_color, width=3)
+                     fill=needle_color, width=4)
+            # 添加半透明邊緣減少鋸齒
+            edge_color = tuple(min(255, c + 50) for c in needle_color)
+            draw.line((gx, gy, needle_x, needle_y), 
+                     fill=edge_color, width=2)
             
             # 指針中心點
             center_r = 4
@@ -390,9 +407,13 @@ class RD1Gauge:
         main_needle_x = cx + int(main_needle_length * math.cos(main_needle_angle))
         main_needle_y = cy + int(main_needle_length * math.sin(main_needle_angle))
         
-        # 繪製主指針 (白色，粗)
+        # 繪製更平滑的主指針
+        # 主指針線條 (加厚)
         draw.line((cx, cy, main_needle_x, main_needle_y), 
-                 fill=(255, 255, 255), width=5)
+                 fill=(255, 255, 255), width=6)
+        # 添加半透明邊緣減少鋸齒
+        draw.line((cx, cy, main_needle_x, main_needle_y), 
+                 fill=(220, 220, 220), width=4)
         
         # 主指針中心點
         main_center_r = 8

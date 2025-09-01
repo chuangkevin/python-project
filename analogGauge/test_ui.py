@@ -421,7 +421,7 @@ class RD1GaugeTestUI:
                 try:
                     self.root.after(0, self.update_previews)
                     self.root.after(0, self.update_status)
-                    time.sleep(0.1)  # 100ms 更新間隔
+                    time.sleep(0.008)  # 8.3ms 更新間隔 = 120fps 超完美動畫
                 except:
                     break
                     
