@@ -5,6 +5,8 @@ Epson RD-1 風格指針錶盤模組
 
 import math
 import time
+import os
+import random
 from PIL import Image, ImageDraw, ImageFont
 from typing import Dict, List, Union, Optional
 
@@ -39,7 +41,7 @@ class RD1Gauge:
         }
     }
     
-    def __init__(self, width: int = 240, height: int = 240, show_labels: bool = True):
+    def __init__(self, width: int = 240, height: int = 240, show_labels: bool = True, glass_effect: bool = True):
         """
         初始化指針錶盤
         
@@ -47,6 +49,7 @@ class RD1Gauge:
             width: 錶盤寬度
             height: 錶盤高度
             show_labels: 是否顯示錶盤下方的用途標籤
+            glass_effect: 是否啟用玻璃反光效果
         """
         self.width = width
         self.height = height
@@ -54,6 +57,7 @@ class RD1Gauge:
         self.cy = height // 2
         self.r_outer = min(width, height) // 2 - 20
         self.show_labels = show_labels  # 控制是否顯示錶盤標籤
+        self.glass_effect = glass_effect  # 控制玻璃反光效果
         
         # 初始化中文字體
         self.font = self._get_chinese_font()
@@ -156,6 +160,124 @@ class RD1Gauge:
         """
         return self.show_labels
     
+    def set_glass_effect(self, enabled: bool):
+        """
+        設置玻璃反光效果狀態
+        
+        Args:
+            enabled: True 啟用玻璃效果，False 關閉玻璃效果
+        """
+        self.glass_effect = enabled
+    
+    def get_glass_effect(self) -> bool:
+        """
+        獲取玻璃反光效果狀態
+        
+        Returns:
+            bool: 當前玻璃效果狀態
+        """
+        return self.glass_effect
+    
+    def _draw_glass_overlay(self, img: Image.Image, draw: ImageDraw.Draw) -> None:
+        """
+        繪製高質感玻璃反光遮罩效果
+        
+        Args:
+            img: 要添加效果的圖像
+            draw: ImageDraw 對象
+        """
+        if not self.glass_effect:
+            return
+        
+        width, height = img.size
+        cx = width // 2
+        cy = height // 2
+        radius = min(width, height) // 2 - 10
+        
+        # 創建高質量漸層遮罩
+        overlay = Image.new('RGBA', (width, height), (0, 0, 0, 0))
+        overlay_draw = ImageDraw.Draw(overlay)
+        
+        # 方法1：嘗試加載外部 PNG 反光遮罩
+        glass_overlay_path = os.path.join(os.path.dirname(__file__), "glass_overlay.png")
+        if os.path.exists(glass_overlay_path):
+            try:
+                # 加載外部玻璃遮罩 PNG
+                glass_png = Image.open(glass_overlay_path).convert('RGBA')
+                glass_png = glass_png.resize((width, height), Image.Resampling.LANCZOS)
+                img.paste(glass_png, (0, 0), glass_png)
+                return
+            except Exception:
+                pass  # 如果載入失敗，使用程式生成的效果
+        
+        # 方法2：程式生成高質感玻璃效果
+        # 計算圓心和半徑
+        cx, cy = width // 2, height // 2
+        radius = min(width, height) // 2 - 20
+        
+        # 創建徑向漸層反光
+        for y in range(height):
+            for x in range(width):
+                # 計算到中心的距離
+                dist_to_center = math.sqrt((x - cx)**2 + (y - cy)**2)
+                if dist_to_center > radius:
+                    continue
+                
+                # 計算角度
+                angle = math.atan2(y - cy, x - cx)
+                angle_deg = math.degrees(angle)
+                
+                # 主要反光區域 (左上 45度 到 右上 -45度)
+                if -60 <= angle_deg <= 60:
+                    # 距離中心越近，反光越強
+                    intensity = max(0, 1 - (dist_to_center / radius))
+                    # 根據角度調整反光強度
+                    angle_factor = 1 - abs(angle_deg) / 60
+                    
+                    alpha = int(60 * intensity * angle_factor)
+                    if alpha > 5:  # 避免過暗的像素
+                        overlay_draw.point((x, y), (255, 255, 255, alpha))
+                
+                # 邊緣高光環 (模仿玻璃邊緣的菲涅爾反射)
+                if radius - 15 <= dist_to_center <= radius - 5:
+                    # 頂部和左側邊緣更亮
+                    if -90 <= angle_deg <= 90:
+                        edge_intensity = 1 - abs(angle_deg) / 90
+                        alpha = int(40 * edge_intensity)
+                        overlay_draw.point((x, y), (255, 255, 255, alpha))
+        
+        # 添加弧形高光條 (模仿圓形玻璃的典型反光)
+        highlight_radius = radius * 0.8
+        for angle in range(-30, 31, 2):  # 頂部60度弧形
+            angle_rad = math.radians(angle)
+            hx = cx + int(highlight_radius * math.cos(angle_rad))
+            hy = cy + int(highlight_radius * math.sin(angle_rad))
+            
+            # 繪製弧形高光線
+            for thickness in range(8):
+                offset_x = hx + random.randint(-2, 2)
+                offset_y = hy + random.randint(-2, 2)
+                if 0 <= offset_x < width and 0 <= offset_y < height:
+                    alpha = max(0, 50 - thickness * 6)
+                    overlay_draw.point((offset_x, offset_y), (255, 255, 255, alpha))
+        
+        # 添加細緻的邊緣反光點
+        for angle in range(0, 360, 15):
+            angle_rad = math.radians(angle)
+            edge_x = cx + int((radius - 8) * math.cos(angle_rad))
+            edge_y = cy + int((radius - 8) * math.sin(angle_rad))
+            
+            # 頂部和左側邊緣更明顯
+            if -90 <= angle <= 90:
+                alpha = 30
+                overlay_draw.ellipse(
+                    (edge_x - 1, edge_y - 1, edge_x + 1, edge_y + 1),
+                    fill=(255, 255, 255, alpha)
+                )
+        
+        # 將遮罩合併到原圖
+        img.paste(overlay, (0, 0), overlay)
+    
     def _get_chinese_font(self, size: int = 12):
         """
         獲取支援中文的字體
@@ -246,6 +368,59 @@ class RD1Gauge:
         
         return x, y, angle
     
+    def _draw_sharp_needle(self, draw, center_x, center_y, tip_x, tip_y, color, width=8):
+        """繪製尖銳指針 (三角形形狀)"""
+        # 計算指針角度
+        angle = math.atan2(tip_y - center_y, tip_x - center_x)
+        
+        # 計算指針長度
+        needle_length = math.sqrt((tip_x - center_x)**2 + (tip_y - center_y)**2)
+        
+        # 指針寬度的一半
+        half_width = width // 2
+        
+        # 計算垂直於指針方向的偏移向量
+        perp_angle = angle + math.pi / 2
+        offset_x = half_width * math.cos(perp_angle)
+        offset_y = half_width * math.sin(perp_angle)
+        
+        # 計算指針根部的兩個點
+        base_left_x = center_x + offset_x
+        base_left_y = center_y + offset_y
+        base_right_x = center_x - offset_x
+        base_right_y = center_y - offset_y
+        
+        # 指針尾端縮小一些，形成更好的視覺效果
+        tail_ratio = 0.8  # 尾端寬度為根部的80%
+        tail_offset_x = offset_x * tail_ratio
+        tail_offset_y = offset_y * tail_ratio
+        
+        # 計算指針尾端 (從中心向後延伸一小段)
+        tail_length = width * 1.5
+        tail_center_x = center_x - tail_length * math.cos(angle)
+        tail_center_y = center_y - tail_length * math.sin(angle)
+        
+        tail_left_x = tail_center_x + tail_offset_x
+        tail_left_y = tail_center_y + tail_offset_y
+        tail_right_x = tail_center_x - tail_offset_x
+        tail_right_y = tail_center_y - tail_offset_y
+        
+        # 繪製指針多邊形 (尖頭指針)
+        needle_points = [
+            (tip_x, tip_y),              # 指針尖端
+            (base_left_x, base_left_y),  # 根部左側
+            (tail_left_x, tail_left_y),  # 尾端左側
+            (tail_right_x, tail_right_y), # 尾端右側
+            (base_right_x, base_right_y), # 根部右側
+        ]
+        
+        # 繪製主體
+        draw.polygon(needle_points, fill=color)
+        
+        # 添加邊緣高光增強質感
+        edge_color = tuple(min(255, c + 30) for c in color)
+        draw.polygon(needle_points, outline=edge_color)
+    
     def draw_gauge(self, gauge_type: str, background_color: tuple = (255, 255, 255)) -> Image.Image:
         """
         繪製單個指針錶盤
@@ -305,9 +480,8 @@ class RD1Gauge:
         # 繪製指針
         needle_x, needle_y, angle = self._calculate_needle_position(gauge_type)
         
-        # 指針主體
-        draw.line((self.cx, self.cy, needle_x, needle_y), 
-                 fill=config["color"], width=4)
+        # 繪製尖銳指針
+        self._draw_sharp_needle(draw, self.cx, self.cy, needle_x, needle_y, config["color"], width=8)
         
         # 指針中心圓點
         center_r = 8
@@ -477,14 +651,8 @@ class RD1Gauge:
             # 指針顏色
             needle_color = self.GAUGE_CONFIGS[gauge_type]["color"]
             
-            # 繪製更平滑的指針 (使用多重線條模擬抗鋸齒)
-            # 主指針線條
-            draw.line((gx, gy, needle_x, needle_y), 
-                     fill=needle_color, width=4)
-            # 添加半透明邊緣減少鋸齒
-            edge_color = tuple(min(255, c + 50) for c in needle_color)
-            draw.line((gx, gy, needle_x, needle_y), 
-                     fill=edge_color, width=2)
+            # 繪製尖銳指針 (小錶盤)
+            self._draw_sharp_needle(draw, gx, gy, needle_x, needle_y, needle_color, width=6)
             
             # 指針中心點
             center_r = 4
@@ -526,19 +694,17 @@ class RD1Gauge:
         main_needle_x = cx + int(main_needle_length * math.cos(main_needle_angle))
         main_needle_y = cy + int(main_needle_length * math.sin(main_needle_angle))
         
-        # 繪製更平滑的主指針
-        # 主指針線條 (加厚)
-        draw.line((cx, cy, main_needle_x, main_needle_y), 
-                 fill=(255, 255, 255), width=6)
-        # 添加半透明邊緣減少鋸齒
-        draw.line((cx, cy, main_needle_x, main_needle_y), 
-                 fill=(220, 220, 220), width=4)
+        # 繪製尖銳的主指針
+        self._draw_sharp_needle(draw, cx, cy, main_needle_x, main_needle_y, (255, 255, 255), width=10)
         
         # 主指針中心點
         main_center_r = 8
         draw.ellipse((cx - main_center_r, cy - main_center_r, 
                      cx + main_center_r, cy + main_center_r),
                     fill=(255, 255, 255), outline=(200, 200, 200), width=2)
+        
+        # 添加玻璃反光效果 (如果啟用)
+        self._draw_glass_overlay(img, draw)
         
         return img
     

@@ -75,6 +75,24 @@ class SystemMonitorGauge:
         """
         return self.gauge.get_label_visibility()
     
+    def set_glass_effect(self, enabled: bool):
+        """
+        設置錶盤玻璃反光效果狀態
+        
+        Args:
+            enabled: True 啟用玻璃效果，False 關閉玻璃效果
+        """
+        self.gauge.set_glass_effect(enabled)
+    
+    def get_glass_effect(self) -> bool:
+        """
+        獲取錶盤玻璃反光效果狀態
+        
+        Returns:
+            bool: 當前玻璃效果狀態
+        """
+        return self.gauge.get_glass_effect()
+    
     def get_cpu_usage(self):
         """獲取 CPU 使用率"""
         cpu_percent = psutil.cpu_percent(interval=0.1)

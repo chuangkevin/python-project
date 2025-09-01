@@ -101,6 +101,18 @@ class SystemMonitorUI:
         )
         self.label_button.pack(side='left', padx=5)
         
+        # 玻璃效果控制按鈕
+        self.glass_button = tk.Button(
+            control_frame,
+            text="✨ 關閉玻璃",
+            command=self.toggle_glass_effect,
+            bg='#2196F3',
+            fg='white',
+            font=('Arial', 12, 'bold'),
+            width=12
+        )
+        self.glass_button.pack(side='left', padx=5)
+        
         # 折疊控制按鈕區域
         collapse_control_frame = tk.Frame(self.root, bg='#f0f0f0')
         collapse_control_frame.pack(pady=5)
@@ -211,6 +223,18 @@ class SystemMonitorUI:
             self.label_button.config(text="🏷️ 隱藏標籤")
         else:
             self.label_button.config(text="🏷️ 顯示標籤")
+    
+    def toggle_glass_effect(self):
+        """切換玻璃反光效果狀態"""
+        current_state = self.monitor.get_glass_effect()
+        new_state = not current_state
+        self.monitor.set_glass_effect(new_state)
+        
+        # 更新按鈕文字
+        if new_state:
+            self.glass_button.config(text="✨ 關閉玻璃")
+        else:
+            self.glass_button.config(text="✨ 開啟玻璃")
     
     def toggle_details(self):
         """切換詳細資訊顯示狀態"""
