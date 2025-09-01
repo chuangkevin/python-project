@@ -89,6 +89,18 @@ class SystemMonitorUI:
         )
         refresh_button.pack(side='left', padx=5)
         
+        # 標籤顯示控制按鈕
+        self.label_button = tk.Button(
+            control_frame,
+            text="🏷️ 隱藏標籤",
+            command=self.toggle_labels,
+            bg='#FF9800',
+            fg='white',
+            font=('Arial', 12, 'bold'),
+            width=12
+        )
+        self.label_button.pack(side='left', padx=5)
+        
         # 詳細資訊區域
         info_frame = tk.LabelFrame(
             self.root, 
@@ -165,6 +177,18 @@ class SystemMonitorUI:
         self.start_button.config(state='normal')
         self.stop_button.config(state='disabled') 
         self.status_label.config(text="⏸️ 監控已停止")
+        
+    def toggle_labels(self):
+        """切換標籤顯示狀態"""
+        current_state = self.monitor.get_label_visibility()
+        new_state = not current_state
+        self.monitor.set_label_visibility(new_state)
+        
+        # 更新按鈕文字
+        if new_state:
+            self.label_button.config(text="🏷️ 隱藏標籤")
+        else:
+            self.label_button.config(text="🏷️ 顯示標籤")
         
     def manual_refresh(self):
         """手動重新整理"""

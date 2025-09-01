@@ -39,19 +39,24 @@ class RD1Gauge:
         }
     }
     
-    def __init__(self, width: int = 240, height: int = 240):
+    def __init__(self, width: int = 240, height: int = 240, show_labels: bool = True):
         """
         初始化指針錶盤
         
         Args:
             width: 錶盤寬度
             height: 錶盤高度
+            show_labels: 是否顯示錶盤下方的用途標籤
         """
         self.width = width
         self.height = height
         self.cx = width // 2
         self.cy = height // 2
         self.r_outer = min(width, height) // 2 - 20
+        self.show_labels = show_labels  # 控制是否顯示錶盤標籤
+        
+        # 初始化中文字體
+        self.font = self._get_chinese_font()
         
         # 當前狀態
         self.current_values = {
@@ -132,6 +137,73 @@ class RD1Gauge:
         config = self.GAUGE_CONFIGS[gauge_type]
         index = int(self.animation_values[gauge_type])
         return config["values"][index]
+    
+    def set_label_visibility(self, show: bool):
+        """
+        設置錶盤標籤顯示狀態
+        
+        Args:
+            show: True 顯示標籤，False 隱藏標籤
+        """
+        self.show_labels = show
+    
+    def get_label_visibility(self) -> bool:
+        """
+        獲取錶盤標籤顯示狀態
+        
+        Returns:
+            bool: 當前標籤顯示狀態
+        """
+        return self.show_labels
+    
+    def _get_chinese_font(self, size: int = 12):
+        """
+        獲取支援中文的字體
+        
+        Args:
+            size: 字體大小
+            
+        Returns:
+            ImageFont: 支援中文的字體對象
+        """
+        import os
+        import platform
+        
+        try:
+            system = platform.system()
+            
+            if system == "Windows":
+                # Windows 系統字體路徑
+                font_paths = [
+                    "C:/Windows/Fonts/msyh.ttc",      # 微軟雅黑
+                    "C:/Windows/Fonts/simhei.ttf",    # 黑體
+                    "C:/Windows/Fonts/simsun.ttc",    # 宋體
+                    "C:/Windows/Fonts/arial.ttf"      # 備用 Arial
+                ]
+            elif system == "Darwin":  # macOS
+                font_paths = [
+                    "/System/Library/Fonts/PingFang.ttc",    # 蘋方
+                    "/System/Library/Fonts/Helvetica.ttc",   # Helvetica
+                    "/System/Library/Fonts/Arial.ttf"        # Arial
+                ]
+            else:  # Linux
+                font_paths = [
+                    "/usr/share/fonts/truetype/wqy/wqy-microhei.ttc",
+                    "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+                    "/usr/share/fonts/TTF/DejaVuSans.ttf"
+                ]
+            
+            # 嘗試載入字體
+            for font_path in font_paths:
+                if os.path.exists(font_path):
+                    return ImageFont.truetype(font_path, size)
+            
+            # 如果都找不到，使用預設字體
+            return ImageFont.load_default()
+            
+        except Exception as e:
+            print(f"字體載入失敗，使用預設字體: {e}")
+            return ImageFont.load_default()
     
     def update_animation(self):
         """更新動畫狀態 - 細緻化插值"""
@@ -228,7 +300,7 @@ class RD1Gauge:
             # 繪製文字（簡單居中）
             text_width = len(str(val)) * 6
             draw.text((label_x - text_width//2, label_y - 8), str(val), 
-                     fill=(60, 60, 60))
+                     fill=(60, 60, 60), font=self.font)
         
         # 繪製指針
         needle_x, needle_y, angle = self._calculate_needle_position(gauge_type)
@@ -247,14 +319,14 @@ class RD1Gauge:
         name_y = self.cy + self.r_outer - 60
         text_width = len(config["name"]) * 7
         draw.text((self.cx - text_width//2, name_y), config["name"], 
-                 fill=(30, 30, 30))
+                 fill=(30, 30, 30), font=self.font)
         
         # 當前數值顯示
         current_val = self.get_value(gauge_type)
         val_y = self.cy + self.r_outer - 40
         val_width = len(str(current_val)) * 8
         draw.text((self.cx - val_width//2, val_y), str(current_val), 
-                 fill=config["color"])
+                 fill=config["color"], font=self.font)
         
         return img
     
@@ -304,7 +376,7 @@ class RD1Gauge:
             
             text_width = len(value) * 8
             draw.text((label_x - text_width//2, label_y - 8), value, 
-                     fill=(255, 255, 255))
+                     fill=(255, 255, 255), font=self.font)
         
         # 移除底部 SHOTS 標籤 (不需要)
         
@@ -390,7 +462,7 @@ class RD1Gauge:
                     
                     text_width = len(str(val)) * 6
                     draw.text((label_x - text_width//2, label_y - 6), str(val), 
-                             fill=(200, 200, 200))
+                             fill=(200, 200, 200), font=self.font)
             
             # 繪製小錶盤指針 (90度範圍)
             if num_values > 1:
@@ -419,6 +491,26 @@ class RD1Gauge:
             draw.ellipse((gx - center_r, gy - center_r, 
                          gx + center_r, gy + center_r),
                         fill=needle_color)
+            
+            # 繪製小錶盤中心標籤 (如果啟用)
+            if self.show_labels:
+                # 獲取錶盤用途名稱
+                gauge_purpose = self.GAUGE_CONFIGS[gauge_type].get("name", gauge_type)
+                
+                # 計算標籤位置 (錶盤中心)
+                label_x = gx
+                label_y = gy
+                
+                # 計算文字寬度以置中
+                text_width = len(gauge_purpose) * 7  # 估算文字寬度
+                label_x = gx - text_width // 2
+                label_y = gy - 6  # 稍微向上偏移，讓文字視覺上居中
+                
+                # 繪製標籤文字 (使用白色)
+                draw.text((label_x, label_y), gauge_purpose, 
+                         fill=(255, 255, 255), font=self.font)  # 白色文字
+        
+        # 繪製小錶盤標籤結束
         
         # 中央主指針 (SHOTS - 拍攝數)
         shots_index = self.animation_values["SHOTS"]

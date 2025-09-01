@@ -28,7 +28,7 @@ class SystemMonitorGauge:
         # 配置 SHOTS (最外圈) -> CPU 使用率 (原本是黑色，改為紅色)
         self.gauge.configure_gauge_dynamic(
             gauge_type="SHOTS",
-            gauge_purpose="CPU使用率",
+            gauge_purpose="CPU",
             values=["0%", "25%", "50%", "75%", "100%"],
             color=(220, 50, 50)  # 紅色指針
         )
@@ -36,7 +36,7 @@ class SystemMonitorGauge:
         # 配置 WB (左上，原本橘色) -> RAM 記憶體使用率 (改為藍色)
         self.gauge.configure_gauge_dynamic(
             gauge_type="WB",
-            gauge_purpose="記憶體使用率",
+            gauge_purpose="RAM",
             values=["0%", "25%", "50%", "75%", "100%"],
             color=(50, 150, 220)  # 藍色指針
         )
@@ -44,7 +44,7 @@ class SystemMonitorGauge:
         # 配置 QUALITY (右上，原本紅色) -> 硬碟活動 (改為橙色)
         self.gauge.configure_gauge_dynamic(
             gauge_type="QUALITY",
-            gauge_purpose="硬碟活動",
+            gauge_purpose="DISK",
             values=["0%", "25%", "50%", "75%", "100%"],
             color=(255, 140, 0)  # 橙色指針
         )
@@ -52,10 +52,28 @@ class SystemMonitorGauge:
         # 配置 BATTERY (中下，原本綠色) -> 網路活動 (保持綠色)
         self.gauge.configure_gauge_dynamic(
             gauge_type="BATTERY",
-            gauge_purpose="網路活動",
+            gauge_purpose="Network",
             values=["空閒", "低", "中", "高", "滿載"],
             color=(50, 200, 50)  # 綠色指針
         )
+    
+    def set_label_visibility(self, show: bool):
+        """
+        設置錶盤標籤顯示狀態
+        
+        Args:
+            show: True 顯示標籤，False 隱藏標籤
+        """
+        self.gauge.set_label_visibility(show)
+    
+    def get_label_visibility(self) -> bool:
+        """
+        獲取錶盤標籤顯示狀態
+        
+        Returns:
+            bool: 當前標籤顯示狀態
+        """
+        return self.gauge.get_label_visibility()
     
     def get_cpu_usage(self):
         """獲取 CPU 使用率"""
