@@ -1,6 +1,6 @@
 """
 系統監控類比錶盤模組
-使用 RD-1 風格錶盤顯示 CPU、RAM、硬碟、網路使用率
+使用 RD-1 風格錶盤顯示 CPU、RAM、硬碟活動、網路使用率
 """
 
 import sys
@@ -41,10 +41,10 @@ class SystemMonitorGauge:
             color=(50, 150, 220)  # 藍色指針
         )
         
-        # 配置 QUALITY (右上，原本紅色) -> 硬碟使用率 (改為橙色)
+        # 配置 QUALITY (右上，原本紅色) -> 硬碟活動 (改為橙色)
         self.gauge.configure_gauge_dynamic(
             gauge_type="QUALITY",
-            gauge_purpose="硬碟使用率",
+            gauge_purpose="硬碟活動",
             values=["0%", "25%", "50%", "75%", "100%"],
             color=(255, 140, 0)  # 橙色指針
         )
@@ -87,22 +87,56 @@ class SystemMonitorGauge:
             return 4
     
     def get_disk_usage(self):
-        """獲取硬碟使用率"""
-        disk = psutil.disk_usage('/')
-        if os.name == 'nt':  # Windows
-            disk = psutil.disk_usage('C:')
-        
-        disk_percent = (disk.used / disk.total) * 100
-        if disk_percent <= 20:
+        """獲取硬碟活動率 (仿照工作管理員)"""
+        try:
+            # 獲取當前磁碟 I/O 統計
+            current_disk = psutil.disk_io_counters()
+            if current_disk is None:
+                return 0
+            
+            # 如果是第一次調用，初始化上次的數據
+            if not hasattr(self, 'last_disk_io'):
+                self.last_disk_io = current_disk
+                self.last_disk_time = time.time()
+                return 0
+            
+            # 計算時間差
+            current_time = time.time()
+            time_diff = current_time - self.last_disk_time
+            
+            if time_diff <= 0:
+                return 0
+            
+            # 計算讀寫字節數差異
+            read_diff = current_disk.read_bytes - self.last_disk_io.read_bytes
+            write_diff = current_disk.write_bytes - self.last_disk_io.write_bytes
+            total_diff = read_diff + write_diff
+            
+            # 計算每秒字節數 (B/s)
+            bytes_per_sec = total_diff / time_diff
+            
+            # 更新上次的數據
+            self.last_disk_io = current_disk
+            self.last_disk_time = current_time
+            
+            # 將字節/秒轉換為活動等級
+            # 參考值：假設 10MB/s 為高活動
+            mb_per_sec = bytes_per_sec / (1024 * 1024)
+            
+            if mb_per_sec <= 1:      # 低於 1MB/s
+                return 0
+            elif mb_per_sec <= 5:    # 1-5MB/s
+                return 1
+            elif mb_per_sec <= 15:   # 5-15MB/s
+                return 2
+            elif mb_per_sec <= 30:   # 15-30MB/s
+                return 3
+            else:                    # 超過 30MB/s
+                return 4
+                
+        except Exception as e:
+            print(f"磁碟活動監控錯誤: {e}")
             return 0
-        elif disk_percent <= 40:
-            return 1
-        elif disk_percent <= 60:
-            return 2
-        elif disk_percent <= 80:
-            return 3
-        else:
-            return 4
     
     def get_network_activity(self):
         """獲取網路活動等級"""
@@ -158,7 +192,7 @@ class SystemMonitorGauge:
         # 設置錶盤數值（正確對應）
         self.gauge.set_value("SHOTS", cpu_level)     # 最外圈 -> CPU
         self.gauge.set_value("WB", ram_level)        # 左上 -> RAM
-        self.gauge.set_value("QUALITY", disk_level)  # 右上 -> 硬碟
+        self.gauge.set_value("QUALITY", disk_level)  # 右上 -> 硬碟活動
         self.gauge.set_value("BATTERY", net_level)   # 中下 -> 網路
         
         # 注意：動畫更新由主循環以 120fps 頻率處理，此處不需要調用
