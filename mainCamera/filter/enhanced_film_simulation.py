@@ -100,7 +100,7 @@ class EnhancedFilmSimulation:
             'PROVIA': '標準專業反轉片 - 平衡自然色彩',
             'VELVIA': '鮮豔反轉片 - 高飽和度風景片',
             'ASTIA': '柔和人像片 - 膚色優化',
-            'CLASSIC_CHROME': '經典鉻彩 - 復古風格',
+            'CLASSIC_CHROME': '經典紀實 - 復古膠片質感，完美的紀實攝影風格',
             'PRO_NEG_HI': '專業負片高調 - 明亮色彩',
             'PRO_NEG_STD': '專業負片標準 - 自然表現',
             'CLASSIC_NEG': '經典負片 - 復古情懷',
@@ -229,6 +229,35 @@ class EnhancedFilmSimulation:
         
         return cv2.LUT(img, lut)
     
+    def _protect_skin_tones(self, img: np.ndarray) -> np.ndarray:
+        """膚色保護算法 - 保持膚色自然"""
+        hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV).astype(np.float32)
+        
+        # 定義膚色範圍（HSV）
+        # 膚色通常在 0-30 和 340-360 度（在 OpenCV 中是 0-15 和 170-180）
+        h = hsv[:, :, 0]
+        s = hsv[:, :, 1] / 255.0
+        v = hsv[:, :, 2] / 255.0
+        
+        # 創建膚色遮罩
+        skin_mask1 = (h >= 0) & (h <= 15) & (s >= 0.2) & (s <= 0.8) & (v >= 0.3) & (v <= 0.9)
+        skin_mask2 = (h >= 170) & (h <= 180) & (s >= 0.2) & (s <= 0.8) & (v >= 0.3) & (v <= 0.9)
+        skin_mask = skin_mask1 | skin_mask2
+        
+        # 對膚色區域進行保護性調整
+        # 減少極端的色相偏移
+        h_protected = h.copy()
+        h_protected[skin_mask] = h[skin_mask] * 0.95  # 輕微調整色相
+        
+        # 保護膚色的飽和度
+        s_protected = s.copy() * 255
+        s_protected[skin_mask] = s[skin_mask] * 255 * 1.05  # 略微增強膚色飽和度
+        
+        hsv[:, :, 0] = h_protected
+        hsv[:, :, 1] = np.clip(s_protected, 0, 255)
+        
+        return cv2.cvtColor(np.clip(hsv, 0, 255).astype(np.uint8), cv2.COLOR_HSV2BGR)
+    
     # === Fujifilm 軟片模擬 ===
     
     def _provia_enhanced(self, img: np.ndarray, **kwargs) -> np.ndarray:
@@ -295,20 +324,40 @@ class EnhancedFilmSimulation:
         return result
     
     def _classic_chrome_enhanced(self, img: np.ndarray, **kwargs) -> np.ndarray:
-        """增強版 Classic Chrome - 復古鉻彩風格"""
-        # 復古褪色效果
-        result = self._vintage_fade(img, 0.25)
+        """增強版 Classic Chrome - 經典紀實風格
         
-        # 經典鉻彩的色彩偏移
-        result = self._split_toning(result, (8, -2, -5), (-3, 5, 8), 0.3)
+        Classic Chrome 的核心特色：
+        1. 紀實攝影風格，中性色調
+        2. 獨特的高光卷掃和陰影細節保留
+        3. 去飽和但保持色彩分離度
+        4. 微妙的冷調偏移
+        5. 柔和的對比度曲線
+        """
+        # 最簡化的處理 - 只降低飽和度和微調色調
+        result = img.copy()
         
-        # 降低飽和度但保持色彩豐富
+        # === 飽和度控制 - Classic Chrome 的核心 ===
         hsv = cv2.cvtColor(result, cv2.COLOR_BGR2HSV).astype(np.float32)
-        hsv[:,:,1] *= 0.85
+        
+        # 降低飽和度 - Classic Chrome 的標誌性特徵
+        hsv[:, :, 1] = hsv[:, :, 1] * 0.75  # 降低到 75%
+        
         result = cv2.cvtColor(np.clip(hsv, 0, 255).astype(np.uint8), cv2.COLOR_HSV2BGR)
         
-        # 復古曲線
-        result = self._tone_curve(result, 'vintage')
+        # === 輕微冷調調整 ===
+        result_float = result.astype(np.float32)
+        
+        # 微妙的色調平衡 - Classic Chrome 的冷調特色
+        result_float[:, :, 0] = np.clip(result_float[:, :, 0] * 1.02, 0, 255)  # 輕微增加藍色
+        result_float[:, :, 1] = np.clip(result_float[:, :, 1] * 0.98, 0, 255)  # 輕微減少綠色
+        result_float[:, :, 2] = np.clip(result_float[:, :, 2] * 0.99, 0, 255)  # 輕微減少紅色
+        
+        # === 輕微對比度調整 ===
+        # 使用簡單的對比度增強
+        result_float = result_float / 255.0
+        result_float = (result_float - 0.5) * 1.05 + 0.5  # 輕微增加對比度
+        
+        result = np.clip(result_float * 255, 0, 255).astype(np.uint8)
         
         return result
     
