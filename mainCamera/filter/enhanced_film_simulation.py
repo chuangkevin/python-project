@@ -3,6 +3,7 @@
 Enhanced Film Simulation Engine
 
 支援最新的軟片模擬技術和專業攝影師的配方
+整合 Pi Camera V5647 色彩校正系統
 """
 
 import cv2
@@ -11,11 +12,35 @@ from PIL import Image
 from typing import Union, Tuple, Dict, Any
 import random
 
+# 導入色彩校正系統（從 colorCorrection 模組）
+try:
+    import sys
+    import os
+    sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'colorCorrection'))
+    from camera_color_calibration import CameraColorCalibration
+    CALIBRATION_AVAILABLE = True
+except ImportError:
+    print("⚠️  色彩校正模組未找到，將使用基本處理")
+    CALIBRATION_AVAILABLE = False
+
 class EnhancedFilmSimulation:
-    """增強版軟片模擬引擎"""
+    """增強版軟片模擬引擎（整合色彩校正）"""
     
-    def __init__(self):
-        """初始化軟片模擬系統"""
+    def __init__(self, enable_calibration: bool = True):
+        """初始化軟片模擬系統
+        
+        Args:
+            enable_calibration: 是否啟用相機色彩校正
+        """
+        # 初始化色彩校正系統
+        self.calibration_enabled = enable_calibration and CALIBRATION_AVAILABLE
+        if self.calibration_enabled:
+            self.color_calibration = CameraColorCalibration()
+            print("✅ Pi Camera V5647 色彩校正系統已啟用")
+        else:
+            self.color_calibration = None
+            print("📷 使用基本軟片模擬（無色彩校正）")
+            
         self.simulations = {
             # === 經典 Fujifilm 軟片 ===
             'PROVIA': self._provia_enhanced,
@@ -72,8 +97,15 @@ class EnhancedFilmSimulation:
         }
     
     def apply_simulation(self, image: Union[str, Image.Image, np.ndarray], 
-                        simulation: str, **kwargs) -> np.ndarray:
-        """套用軟片模擬"""
+                        simulation: str, apply_color_correction: bool = True, **kwargs) -> np.ndarray:
+        """套用軟片模擬（整合色彩校正）
+        
+        Args:
+            image: 輸入圖像
+            simulation: 軟片模擬類型
+            apply_color_correction: 是否在軟片模擬前套用色彩校正
+            **kwargs: 其他參數
+        """
         # 載入圖像
         if isinstance(image, str):
             img = cv2.imread(image)
@@ -86,13 +118,21 @@ class EnhancedFilmSimulation:
         else:
             raise ValueError("不支援的圖像格式")
         
+        # === 第一步：Pi Camera V5647 色彩校正 ===
+        if apply_color_correction and self.calibration_enabled:
+            print(f"🔧 套用 Pi Camera V5647 色彩校正...")
+            img = self.color_calibration.apply_color_correction(img, scene_analysis=True)
+        
         # 檢查軟片模擬是否存在
         if simulation not in self.simulations:
             available = ', '.join(self.simulations.keys())
             raise ValueError(f"軟片模擬 '{simulation}' 不存在。可用選項: {available}")
         
-        # 套用軟片模擬
-        return self.simulations[simulation](img, **kwargs)
+        # === 第二步：套用軟片模擬 ===
+        print(f"🎞️ 套用軟片模擬: {simulation}")
+        result = self.simulations[simulation](img, **kwargs)
+        
+        return result
     
     def get_available_simulations(self) -> Dict[str, str]:
         """取得所有可用的軟片模擬及其描述"""
@@ -975,6 +1015,98 @@ class EnhancedFilmSimulation:
         result = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
         
         return result
+
+    # === Pi Camera V5647 專用方法 ===
+    
+    def set_camera_profile(self, profile_name: str) -> bool:
+        """設定相機配置檔案"""
+        if self.calibration_enabled:
+            return self.color_calibration.set_camera_profile(profile_name)
+        return False
+    
+    def get_camera_info(self) -> dict:
+        """取得當前相機配置資訊"""
+        if self.calibration_enabled:
+            return self.color_calibration.get_current_profile_info()
+        return {"name": "基本處理（無色彩校正）"}
+    
+    def analyze_image_for_rd1(self, image: np.ndarray) -> dict:
+        """為 RD-1 錶盤系統分析圖像特徵"""
+        if not self.calibration_enabled:
+            return {"scene_type": "unknown", "recommendations": {}}
+            
+        analysis = self.color_calibration.analyze_image_characteristics(image)
+        
+        # 轉換為 RD-1 錶盤可用的資訊
+        rd1_analysis = {
+            "scene_type": analysis.get("scene_type", "unknown"),
+            "brightness_level": self._brightness_to_level(analysis.get("brightness", 128)),
+            "wb_suggestion": self._scene_to_wb_mode(analysis.get("scene_type", "unknown")),
+            "quality_suggestion": self._scene_to_quality(analysis.get("scene_type", "unknown")),
+            "shots_estimation": self._estimate_shots_for_scene(analysis.get("scene_type", "unknown"))
+        }
+        
+        return rd1_analysis
+    
+    def _brightness_to_level(self, brightness: float) -> str:
+        """將亮度轉換為錶盤等級"""
+        if brightness < 80:
+            return "低光"
+        elif brightness < 160:
+            return "正常"
+        else:
+            return "高光"
+    
+    def _scene_to_wb_mode(self, scene_type: str) -> str:
+        """根據場景推薦白平衡模式"""
+        wb_mapping = {
+            "outdoor_sky": "☀",      # 晴天
+            "outdoor_vegetation": "⛅", # 多雲
+            "low_light": "💡",        # 白熾燈
+            "high_key": "☀",         # 晴天
+            "balanced": "A"          # 自動
+        }
+        return wb_mapping.get(scene_type, "A")
+    
+    def _scene_to_quality(self, scene_type: str) -> str:
+        """根據場景推薦影像品質"""
+        quality_mapping = {
+            "outdoor_sky": "H",      # 高品質（風景）
+            "outdoor_vegetation": "H", # 高品質（風景）
+            "low_light": "R",        # RAW（保留細節）
+            "high_key": "H",         # 高品質
+            "balanced": "N"          # 一般
+        }
+        return quality_mapping.get(scene_type, "N")
+    
+    def _estimate_shots_for_scene(self, scene_type: str) -> str:
+        """根據場景估算適合的拍攝數設定"""
+        # 這個可以根據實際使用情況調整
+        shots_mapping = {
+            "outdoor_sky": "100",    # 風景攝影，多拍
+            "outdoor_vegetation": "100", # 風景攝影
+            "low_light": "20",       # 低光，精拍
+            "high_key": "50",        # 適中
+            "balanced": "50"         # 適中
+        }
+        return shots_mapping.get(scene_type, "50")
+    
+    def process_for_rd1_display(self, image: np.ndarray, enable_color_correction: bool = True) -> Tuple[np.ndarray, dict]:
+        """為 RD-1 系統處理圖像，返回處理後圖像和錶盤建議
+        
+        Returns:
+            (處理後圖像, 錶盤設定建議)
+        """
+        # 分析圖像
+        analysis = self.analyze_image_for_rd1(image)
+        
+        # 套用色彩校正（如果啟用）
+        if enable_color_correction and self.calibration_enabled:
+            corrected_image = self.color_calibration.apply_color_correction(image, scene_analysis=True)
+        else:
+            corrected_image = image.copy()
+        
+        return corrected_image, analysis
 
 
 def main():
