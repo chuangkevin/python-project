@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎬 增強版軟片模擬器 - 全效果模式</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            text-align: center;
+            padding: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .badges {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+
+        .badge {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.9em;
+            backdrop-filter: blur(10px);
+        }
+
+        .upload-section {
+            padding: 40px;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+        }
+
+        .upload-area {
+            border: 3px dashed #ddd;
+            border-radius: 15px;
+            padding: 60px 20px;
+            background: #f8f9fa;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .upload-area:hover {
+            border-color: #667eea;
+            background: #f0f2ff;
+        }
+
+        .upload-area.dragover {
+            border-color: #ff6b6b;
+            background: #fff0f0;
+        }
+
+        .upload-icon {
+            font-size: 4em;
+            color: #ddd;
+            margin-bottom: 20px;
+        }
+
+        .upload-text {
+            font-size: 1.3em;
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .upload-subtext {
+            font-size: 1em;
+            color: #999;
+            margin-bottom: 30px;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .upload-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .upload-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .progress-section {
+            padding: 40px;
+            text-align: center;
+            display: none;
+        }
+
+        .progress-container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .progress-text {
+            font-size: 1.3em;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #f0f0f0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            width: 0%;
+            transition: width 0.5s ease;
+            border-radius: 10px;
+        }
+
+        .progress-percentage {
+            font-size: 1.1em;
+            color: #666;
+        }
+
+        .results-section {
+            padding: 40px;
+            display: none;
+        }
+
+        .results-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .results-header h2 {
+            font-size: 2em;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .results-stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            min-width: 120px;
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+        }
+
+        .film-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .film-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+        }
+
+        .film-image {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .film-image:hover {
+            transform: scale(1.05);
+        }
+
+        .film-info {
+            padding: 20px;
+        }
+
+        .film-name {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .film-description {
+            color: #666;
+            font-size: 0.9em;
+            line-height: 1.4;
+            margin-bottom: 15px;
+        }
+
+        .download-btn {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(46, 204, 113, 0.3);
+        }
+
+        .error {
+            background: #ff6b6b;
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+        }
+
+        .modal-content {
+            position: relative;
+            margin: 5% auto;
+            max-width: 90%;
+            max-height: 90%;
+        }
+
+        .modal-image {
+            width: 100%;
+            height: auto;
+            border-radius: 10px;
+        }
+
+        .close {
+            position: absolute;
+            top: -40px;
+            right: 0;
+            color: white;
+            font-size: 35px;
+            font-weight: bold;
+            cursor: pointer;
+            background: rgba(0,0,0,0.5);
+            padding: 5px 15px;
+            border-radius: 50%;
+        }
+
+        .close:hover {
+            background: rgba(0,0,0,0.8);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: 15px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .results-stats {
+                gap: 15px;
+            }
+            
+            .upload-section,
+            .progress-section,
+            .results-section {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎬 增強版軟片模擬器</h1>
+            <p>一次體驗全部 41 種軟片效果</p>
+            <div class="badges">
+                <span class="badge">📸 Fujifilm 經典</span>
+                <span class="badge">🎞️ Kodak 傳奇</span>
+                <span class="badge">🌈 Fujicolor 系列</span>
+                <span class="badge">🎬 電影膠片</span>
+                <span class="badge">⏳ 復古風格</span>
+                <span class="badge">✨ 特殊效果</span>
+            </div>
+        </div>
+
+        <!-- 上傳區域 -->
+        <div id="uploadSection" class="upload-section">
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">📷</div>
+                <div class="upload-text">選擇照片開始軟片模擬之旅</div>
+                <div class="upload-subtext">上傳一張照片，自動套用全部 41 種軟片效果進行比較</div>
+                <input type="file" id="fileInput" class="file-input" accept="image/*">
+                <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
+                    🎬 選擇照片開始
+                </button>
+            </div>
+        </div>
+
+        <!-- 進度區域 -->
+        <div id="progressSection" class="progress-section">
+            <div class="progress-container">
+                <div class="progress-text" id="progressText">正在處理您的照片...</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="progress-percentage" id="progressPercentage">0%</div>
+            </div>
+        </div>
+
+        <!-- 結果區域 -->
+        <div id="resultsSection" class="results-section">
+            <div class="results-header">
+                <h2>🎞️ 軟片模擬結果</h2>
+                <div class="results-stats">
+                    <div class="stat-item">
+                        <span class="stat-number" id="totalEffects">41</span>
+                        <div class="stat-label">軟片效果</div>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" id="processingTime">-</span>
+                        <div class="stat-label">處理時間</div>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" id="successCount">-</span>
+                        <div class="stat-label">成功生成</div>
+                    </div>
+                </div>
+            </div>
+            <div class="results-grid" id="resultsGrid">
+                <!-- 結果會動態載入到這裡 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 圖片預覽模態框 -->
+    <div id="imageModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <img id="modalImage" class="modal-image" src="" alt="預覽">
+        </div>
+    </div>
+
+    <script>
+        let sessionId = null;
+        let checkInterval = null;
+        let startTime = null;
+
+        // 檔案上傳處理
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            if (e.target.files.length > 0) {
+                uploadFile(e.target.files[0]);
+            }
+        });
+
+        // 拖拽上傳
+        const uploadArea = document.getElementById('uploadArea');
+        
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                uploadFile(files[0]);
+            }
+        });
+
+        async function uploadFile(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                showSection('progress');
+                startTime = Date.now();
+                updateProgress(0, '正在上傳照片...');
+
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.session_id) {
+                    sessionId = result.session_id;
+                    updateProgress(5, '上傳完成，開始處理所有軟片效果...');
+                    checkProgress();
+                } else {
+                    showError(result.error || '上傳失敗');
+                }
+
+            } catch (error) {
+                showError('上傳失敗: ' + error.message);
+            }
+        }
+
+        async function checkProgress() {
+            if (!sessionId) return;
+
+            try {
+                const response = await fetch(`/status/${sessionId}`);
+                const status = await response.json();
+
+                if (status.status === 'processing') {
+                    const progress = status.progress || 0;
+                    const currentEffect = Math.ceil((progress / 100) * status.total);
+                    updateProgress(progress, `正在處理第 ${currentEffect}/${status.total} 種軟片效果...`);
+                    
+                    checkInterval = setTimeout(checkProgress, 1000);
+                } else if (status.status === 'completed') {
+                    updateProgress(100, '所有軟片效果處理完成！');
+                    setTimeout(() => showResults(status.results), 500);
+                } else if (status.status === 'error') {
+                    showError(status.error || '處理過程中發生錯誤');
+                }
+
+            } catch (error) {
+                showError('檢查進度失敗: ' + error.message);
+            }
+        }
+
+        function showSection(section) {
+            // 隱藏所有區域
+            document.getElementById('uploadSection').style.display = 'none';
+            document.getElementById('progressSection').style.display = 'none';
+            document.getElementById('resultsSection').style.display = 'none';
+
+            // 顯示指定區域
+            if (section === 'upload') {
+                document.getElementById('uploadSection').style.display = 'block';
+            } else if (section === 'progress') {
+                document.getElementById('progressSection').style.display = 'block';
+            } else if (section === 'results') {
+                document.getElementById('resultsSection').style.display = 'block';
+            }
+        }
+
+        function updateProgress(percentage, text) {
+            document.getElementById('progressFill').style.width = percentage + '%';
+            document.getElementById('progressText').textContent = text;
+            document.getElementById('progressPercentage').textContent = Math.round(percentage) + '%';
+        }
+
+        function showResults(results) {
+            showSection('results');
+            
+            // 計算處理時間
+            const processingTime = Math.round((Date.now() - startTime) / 1000);
+            document.getElementById('processingTime').textContent = processingTime + 's';
+            document.getElementById('successCount').textContent = Object.keys(results).length;
+            
+            const grid = document.getElementById('resultsGrid');
+            grid.innerHTML = '';
+
+            // 排序結果 (原始圖像放在第一個)
+            const sortedResults = Object.entries(results).sort(([a], [b]) => {
+                if (a === '原始圖像') return -1;
+                if (b === '原始圖像') return 1;
+                return a.localeCompare(b);
+            });
+
+            sortedResults.forEach(([simName, data]) => {
+                const card = createFilmCard(simName, data);
+                grid.appendChild(card);
+            });
+        }
+
+        function createFilmCard(simName, data) {
+            const card = document.createElement('div');
+            card.className = 'film-card';
+
+            card.innerHTML = `
+                <img src="data:image/jpeg;base64,${data.image}" alt="${data.name}" class="film-image" onclick="showModal(this.src)">
+                <div class="film-info">
+                    <div class="film-name">${data.name}</div>
+                    <div class="film-description">${data.description}</div>
+                    <button class="download-btn" onclick="downloadImage('${simName}')">
+                        📥 下載圖像
+                    </button>
+                </div>
+            `;
+
+            return card;
+        }
+
+        function downloadImage(simName) {
+            if (!sessionId) return;
+            
+            const link = document.createElement('a');
+            link.href = `/download/${sessionId}/${simName}`;
+            link.download = `${simName}_enhanced_simulation.jpg`;
+            link.click();
+        }
+
+        function showError(message) {
+            clearTimeout(checkInterval);
+            
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error';
+            errorDiv.textContent = '❌ ' + message;
+            
+            // 插入錯誤訊息
+            const container = document.querySelector('.container');
+            container.appendChild(errorDiv);
+            
+            // 3秒後移除錯誤訊息並重置
+            setTimeout(() => {
+                errorDiv.remove();
+                resetApp();
+            }, 3000);
+        }
+
+        function resetApp() {
+            clearTimeout(checkInterval);
+            sessionId = null;
+            
+            // 重置檔案輸入
+            document.getElementById('fileInput').value = '';
+            
+            // 顯示上傳區域
+            showSection('upload');
+        }
+
+        // 圖片預覽模態框
+        function showModal(src) {
+            const modal = document.getElementById('imageModal');
+            const modalImg = document.getElementById('modalImage');
+            modal.style.display = 'block';
+            modalImg.src = src;
+        }
+
+        // 關閉模態框
+        document.querySelector('.close').onclick = function() {
+            document.getElementById('imageModal').style.display = 'none';
+        }
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('imageModal');
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        // 頁面載入完成後顯示上傳區域
+        window.addEventListener('load', () => {
+            showSection('upload');
+        });
+    </script>
+</body>
+</html>

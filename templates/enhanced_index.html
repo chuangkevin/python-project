@@ -1,0 +1,1017 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>增強版軟片模擬器</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --background-color: #ecf0f1;
+            --card-background: #ffffff;
+            --text-color: #2c3e50;
+            --border-color: #bdc3c7;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--background-color) 0%, #d5dbdb 100%);
+            color: var(--text-color);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #34495e 100%);
+            color: white;
+            padding: 2rem 0;
+            text-align: center;
+            box-shadow: var(--shadow);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            font-weight: 300;
+        }
+
+        .header .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin-bottom: 1rem;
+        }
+
+        .header .badges {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.3rem 0.8rem;
+            border-radius: 15px;
+            font-size: 0.9rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .tabs {
+            display: flex;
+            background: var(--card-background);
+            border-radius: 10px 10px 0 0;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            margin-bottom: 0;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 1rem;
+            background: var(--border-color);
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .tab.active {
+            background: var(--secondary-color);
+            color: white;
+        }
+
+        .tab:hover:not(.active) {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .tab-content {
+            background: var(--card-background);
+            border-radius: 0 0 10px 10px;
+            padding: 2rem;
+            box-shadow: var(--shadow);
+            min-height: 600px;
+        }
+
+        .upload-area {
+            border: 3px dashed var(--border-color);
+            border-radius: 15px;
+            padding: 3rem 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            background: rgba(52, 152, 219, 0.05);
+            margin-bottom: 2rem;
+        }
+
+        .upload-area:hover {
+            border-color: var(--secondary-color);
+            background: rgba(52, 152, 219, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .upload-area.dragover {
+            border-color: var(--secondary-color);
+            background: rgba(52, 152, 219, 0.15);
+            transform: scale(1.02);
+        }
+
+        .upload-icon {
+            font-size: 4rem;
+            color: var(--secondary-color);
+            margin-bottom: 1rem;
+        }
+
+        .simulation-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .simulation-category {
+            background: var(--card-background);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+        }
+
+        .simulation-category:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .category-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #34495e 100%);
+            color: white;
+            padding: 1rem;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .category-content {
+            padding: 1rem;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .simulation-option {
+            display: flex;
+            align-items: center;
+            padding: 0.8rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .simulation-option:hover {
+            background: rgba(52, 152, 219, 0.1);
+        }
+
+        .simulation-option input[type="checkbox"] {
+            margin-right: 0.8rem;
+            transform: scale(1.2);
+        }
+
+        .simulation-info {
+            flex: 1;
+        }
+
+        .simulation-name {
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 0.2rem;
+        }
+
+        .simulation-desc {
+            font-size: 0.9rem;
+            color: #7f8c8d;
+        }
+
+        .progress-container {
+            background: var(--card-background);
+            border-radius: 10px;
+            padding: 2rem;
+            box-shadow: var(--shadow);
+            margin-top: 2rem;
+            display: none;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: var(--border-color);
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--secondary-color) 0%, var(--success-color) 100%);
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 10px;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .result-card {
+            background: var(--card-background);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+        }
+
+        .result-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .result-image {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+            cursor: pointer;
+        }
+
+        .result-info {
+            padding: 1.5rem;
+        }
+
+        .result-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+            color: var(--primary-color);
+        }
+
+        .result-description {
+            color: #7f8c8d;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .button {
+            background: linear-gradient(135deg, var(--secondary-color) 0%, #2980b9 100%);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        .button.secondary {
+            background: linear-gradient(135deg, var(--accent-color) 0%, #c0392b 100%);
+        }
+
+        .button.success {
+            background: linear-gradient(135deg, var(--success-color) 0%, #229954 100%);
+        }
+
+        .button:disabled {
+            background: var(--border-color);
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status-message {
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            font-weight: 500;
+        }
+
+        .status-success {
+            background: rgba(39, 174, 96, 0.1);
+            color: var(--success-color);
+            border: 1px solid rgba(39, 174, 96, 0.3);
+        }
+
+        .status-error {
+            background: rgba(231, 76, 60, 0.1);
+            color: var(--accent-color);
+            border: 1px solid rgba(231, 76, 60, 0.3);
+        }
+
+        .status-info {
+            background: rgba(52, 152, 219, 0.1);
+            color: var(--secondary-color);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            position: relative;
+            margin: 5% auto;
+            max-width: 90%;
+            max-height: 90%;
+        }
+
+        .modal-image {
+            width: 100%;
+            height: auto;
+            border-radius: 10px;
+        }
+
+        .close {
+            position: absolute;
+            top: -40px;
+            right: 0;
+            color: white;
+            font-size: 2rem;
+            font-weight: bold;
+            cursor: pointer;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 0.5rem 1rem;
+            border-radius: 50%;
+        }
+
+        .loading-spinner {
+            border: 4px solid var(--border-color);
+            border-top: 4px solid var(--secondary-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 1rem auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .feature-card {
+            background: var(--card-background);
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .footer {
+            background: var(--primary-color);
+            color: white;
+            text-align: center;
+            padding: 2rem;
+            margin-top: 3rem;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .tabs {
+                flex-direction: column;
+            }
+            
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .simulation-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="container">
+            <h1>🎬 增強版軟片模擬器</h1>
+            <div class="subtitle">支援 40+ 種經典軟片效果</div>
+            <div class="badges">
+                <span class="badge">📸 Fujifilm 經典</span>
+                <span class="badge">🎞️ Kodak 傳奇</span>
+                <span class="badge">🌈 Fujicolor 系列</span>
+                <span class="badge">🎬 電影膠片</span>
+                <span class="badge">⏳ 復古風格</span>
+                <span class="badge">✨ 特殊效果</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('single')">單張處理</button>
+            <button class="tab" onclick="showTab('batch')">批次處理</button>
+            <button class="tab" onclick="showTab('about')">關於軟片</button>
+        </div>
+
+        <!-- 單張處理標籤 -->
+        <div id="single-tab" class="tab-content">
+            <div class="upload-area" id="single-upload">
+                <div class="upload-icon">📷</div>
+                <h3>選擇或拖拽照片到這裡</h3>
+                <p>支援 JPG, PNG, TIFF 等格式，最大 16MB</p>
+                <input type="file" id="single-file" accept="image/*" style="display: none;">
+                <button class="button" onclick="document.getElementById('single-file').click()">
+                    選擇照片
+                </button>
+            </div>
+
+            <div id="single-simulation-select" style="display: none;">
+                <h3>選擇軟片模擬效果</h3>
+                <select id="simulation-dropdown" class="button" style="width: 100%; margin: 1rem 0;">
+                    <option value="">載入中...</option>
+                </select>
+                <button class="button success" onclick="processSingle()">
+                    🎬 開始處理
+                </button>
+            </div>
+
+            <div id="single-progress" class="progress-container">
+                <h3>處理中...</h3>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="single-progress-fill"></div>
+                </div>
+                <div id="single-status" class="status-message status-info">正在處理您的照片...</div>
+            </div>
+
+            <div id="single-results"></div>
+        </div>
+
+        <!-- 批次處理標籤 -->
+        <div id="batch-tab" class="tab-content" style="display: none;">
+            <div class="upload-area" id="batch-upload">
+                <div class="upload-icon">🎞️</div>
+                <h3>批次軟片模擬處理</h3>
+                <p>上傳一張照片，一次體驗多種軟片效果</p>
+                <input type="file" id="batch-file" accept="image/*" style="display: none;">
+                <button class="button" onclick="document.getElementById('batch-file').click()">
+                    選擇照片
+                </button>
+            </div>
+
+            <div id="batch-simulation-select" style="display: none;">
+                <h3>選擇要處理的軟片效果</h3>
+                <div class="simulation-grid" id="simulation-categories">
+                    <!-- 動態載入軟片分類 -->
+                </div>
+                <div style="text-align: center; margin-top: 2rem;">
+                    <button class="button secondary" onclick="selectAll()">全選</button>
+                    <button class="button" onclick="selectPopular()">選擇熱門</button>
+                    <button class="button success" onclick="processBatch()">
+                        🎬 開始批次處理
+                    </button>
+                </div>
+            </div>
+
+            <div id="batch-progress" class="progress-container">
+                <h3>批次處理中...</h3>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="batch-progress-fill"></div>
+                </div>
+                <div id="batch-status" class="status-message status-info">正在處理您的照片...</div>
+            </div>
+
+            <div id="batch-results"></div>
+        </div>
+
+        <!-- 關於軟片標籤 -->
+        <div id="about-tab" class="tab-content" style="display: none;">
+            <h2>🎞️ 關於軟片模擬</h2>
+            
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">📸</div>
+                    <h3>Fujifilm 經典</h3>
+                    <p>PROVIA、Velvia、Astia 等經典軟片，精確還原 Fujifilm 的色彩科學</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🎞️</div>
+                    <h3>Kodak 傳奇</h3>
+                    <p>Kodachrome、Portra、Gold 系列，重現柯達黃金時代的經典色調</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🌈</div>
+                    <h3>Fujicolor 系列</h3>
+                    <p>C200、Superia、Natura 等日系膠片的溫暖自然色彩</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🎬</div>
+                    <h3>電影膠片</h3>
+                    <p>CineStill、Vision3 等專業電影膠片的獨特質感</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">⏳</div>
+                    <h3>復古風格</h3>
+                    <p>60-80年代的懷舊色調，重現時代經典美學</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">✨</div>
+                    <h3>特殊效果</h3>
+                    <p>紅片、交叉沖洗、紅外線等創意攝影技法</p>
+                </div>
+            </div>
+
+            <div style="margin-top: 3rem; padding: 2rem; background: rgba(52, 152, 219, 0.1); border-radius: 10px;">
+                <h3>🏆專業配方</h3>
+                <p>這些配方由專業攝影師精心調校，確保最真實的軟片色彩還原。每種模擬都經過仔細研究，從色溫、飽和度、對比度到顆粒感，都力求還原真實膠片的特色。</p>
+                
+                <h3 style="margin-top: 2rem;">🔬 技術特色</h3>
+                <ul style="margin-left: 2rem; margin-top: 1rem;">
+                    <li>精確的色彩科學算法</li>
+                    <li>真實的膠片顆粒模擬</li>
+                    <li>專業的色調曲線調整</li>
+                    <li>膚色優化算法</li>
+                    <li>分離調色技術</li>
+                    <li>復古褪色效果</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- 圖片預覽模態框 -->
+    <div id="image-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <img id="modal-image" class="modal-image" src="" alt="預覽">
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>&copy; 2024 增強版軟片模擬器 | 支援 40+ 種經典軟片效果</p>
+    </div>
+
+    <script>
+        let availableSimulations = {};
+        let currentSingleJobId = null;
+        let currentBatchJobId = null;
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSimulations();
+            setupDragAndDrop();
+            setupModal();
+        });
+
+        // 載入軟片模擬選項
+        async function loadSimulations() {
+            try {
+                const response = await fetch('/get_simulations');
+                availableSimulations = await response.json();
+                
+                // 更新單張處理的下拉選單
+                updateSingleDropdown();
+                
+                // 更新批次處理的選項
+                updateBatchOptions();
+                
+            } catch (error) {
+                console.error('載入軟片模擬失敗:', error);
+            }
+        }
+
+        // 更新單張處理下拉選單
+        function updateSingleDropdown() {
+            const dropdown = document.getElementById('simulation-dropdown');
+            dropdown.innerHTML = '<option value="">選擇軟片效果</option>';
+            
+            for (const [category, simulations] of Object.entries(availableSimulations)) {
+                if (simulations.length > 0) {
+                    const optgroup = document.createElement('optgroup');
+                    optgroup.label = category;
+                    
+                    simulations.forEach(sim => {
+                        const option = document.createElement('option');
+                        option.value = sim.name;
+                        option.textContent = `${sim.name} - ${sim.description}`;
+                        optgroup.appendChild(option);
+                    });
+                    
+                    dropdown.appendChild(optgroup);
+                }
+            }
+        }
+
+        // 更新批次處理選項
+        function updateBatchOptions() {
+            const container = document.getElementById('simulation-categories');
+            container.innerHTML = '';
+            
+            for (const [category, simulations] of Object.entries(availableSimulations)) {
+                if (simulations.length > 0) {
+                    const categoryDiv = document.createElement('div');
+                    categoryDiv.className = 'simulation-category';
+                    
+                    categoryDiv.innerHTML = `
+                        <div class="category-header">${category}</div>
+                        <div class="category-content">
+                            ${simulations.map(sim => `
+                                <div class="simulation-option" onclick="toggleSimulation('${sim.name}')">
+                                    <input type="checkbox" id="sim-${sim.name}" name="simulation" value="${sim.name}">
+                                    <div class="simulation-info">
+                                        <div class="simulation-name">${sim.name}</div>
+                                        <div class="simulation-desc">${sim.description}</div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                    
+                    container.appendChild(categoryDiv);
+                }
+            }
+        }
+
+        // 切換標籤
+        function showTab(tabName) {
+            // 隱藏所有標籤內容
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.style.display = 'none';
+            });
+            
+            // 移除所有活動狀態
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // 顯示選中的標籤
+            document.getElementById(`${tabName}-tab`).style.display = 'block';
+            event.target.classList.add('active');
+        }
+
+        // 設置拖拽上傳
+        function setupDragAndDrop() {
+            ['single-upload', 'batch-upload'].forEach(id => {
+                const area = document.getElementById(id);
+                
+                area.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    area.classList.add('dragover');
+                });
+                
+                area.addEventListener('dragleave', () => {
+                    area.classList.remove('dragover');
+                });
+                
+                area.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    area.classList.remove('dragover');
+                    
+                    const files = e.dataTransfer.files;
+                    if (files.length > 0) {
+                        const fileInput = document.getElementById(id.replace('-upload', '-file'));
+                        fileInput.files = files;
+                        fileInput.dispatchEvent(new Event('change'));
+                    }
+                });
+            });
+        }
+
+        // 檔案選擇處理
+        document.getElementById('single-file').addEventListener('change', function(e) {
+            if (e.target.files.length > 0) {
+                document.getElementById('single-simulation-select').style.display = 'block';
+            }
+        });
+
+        document.getElementById('batch-file').addEventListener('change', function(e) {
+            if (e.target.files.length > 0) {
+                document.getElementById('batch-simulation-select').style.display = 'block';
+            }
+        });
+
+        // 單張處理
+        async function processSingle() {
+            const fileInput = document.getElementById('single-file');
+            const simulation = document.getElementById('simulation-dropdown').value;
+            
+            if (!fileInput.files.length || !simulation) {
+                alert('請選擇照片和軟片效果');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+            formData.append('simulation', simulation);
+            
+            // 顯示進度條
+            document.getElementById('single-progress').style.display = 'block';
+            
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.job_id) {
+                    currentSingleJobId = result.job_id;
+                    checkSingleProgress();
+                } else {
+                    showStatus('single-status', result.error, 'error');
+                }
+                
+            } catch (error) {
+                showStatus('single-status', '上傳失敗: ' + error.message, 'error');
+            }
+        }
+
+        // 批次處理
+        async function processBatch() {
+            const fileInput = document.getElementById('batch-file');
+            const selectedSims = Array.from(document.querySelectorAll('input[name="simulation"]:checked'))
+                                    .map(cb => cb.value);
+            
+            if (!fileInput.files.length) {
+                alert('請選擇照片');
+                return;
+            }
+            
+            if (selectedSims.length === 0) {
+                alert('請至少選擇一種軟片效果');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+            selectedSims.forEach(sim => formData.append('simulations', sim));
+            
+            // 顯示進度條
+            document.getElementById('batch-progress').style.display = 'block';
+            
+            try {
+                const response = await fetch('/batch_upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.job_id) {
+                    currentBatchJobId = result.job_id;
+                    checkBatchProgress();
+                } else {
+                    showStatus('batch-status', result.error, 'error');
+                }
+                
+            } catch (error) {
+                showStatus('batch-status', '上傳失敗: ' + error.message, 'error');
+            }
+        }
+
+        // 檢查單張處理進度
+        async function checkSingleProgress() {
+            if (!currentSingleJobId) return;
+            
+            try {
+                const response = await fetch(`/status/${currentSingleJobId}`);
+                const status = await response.json();
+                
+                // 更新進度條
+                document.getElementById('single-progress-fill').style.width = `${status.progress || 0}%`;
+                
+                // 更新狀態訊息
+                showStatus('single-status', status.message || '處理中...', 'info');
+                
+                if (status.status === 'completed') {
+                    // 顯示結果
+                    showSingleResult(status);
+                    document.getElementById('single-progress').style.display = 'none';
+                } else if (status.status === 'error') {
+                    showStatus('single-status', status.message, 'error');
+                } else {
+                    // 繼續檢查
+                    setTimeout(checkSingleProgress, 1000);
+                }
+                
+            } catch (error) {
+                showStatus('single-status', '檢查狀態失敗: ' + error.message, 'error');
+            }
+        }
+
+        // 檢查批次處理進度
+        async function checkBatchProgress() {
+            if (!currentBatchJobId) return;
+            
+            try {
+                const response = await fetch(`/status/${currentBatchJobId}`);
+                const status = await response.json();
+                
+                // 更新進度條
+                document.getElementById('batch-progress-fill').style.width = `${status.progress || 0}%`;
+                
+                // 更新狀態訊息
+                showStatus('batch-status', status.message || '處理中...', 'info');
+                
+                if (status.status === 'completed') {
+                    // 顯示結果
+                    showBatchResults(status);
+                    document.getElementById('batch-progress').style.display = 'none';
+                } else if (status.status === 'error') {
+                    showStatus('batch-status', status.message, 'error');
+                } else {
+                    // 繼續檢查
+                    setTimeout(checkBatchProgress, 1000);
+                }
+                
+            } catch (error) {
+                showStatus('batch-status', '檢查狀態失敗: ' + error.message, 'error');
+            }
+        }
+
+        // 顯示單張結果
+        function showSingleResult(status) {
+            const resultsDiv = document.getElementById('single-results');
+            
+            resultsDiv.innerHTML = `
+                <div class="results-grid">
+                    <div class="result-card">
+                        <img src="data:image/jpeg;base64,${status.result}" 
+                             alt="${status.simulation}" 
+                             class="result-image"
+                             onclick="showImageModal(this.src)">
+                        <div class="result-info">
+                            <div class="result-title">${status.simulation}</div>
+                            <div class="result-description">${getSimulationDescription(status.simulation)}</div>
+                            <a href="/download/${currentSingleJobId}" class="button success">
+                                📥 下載圖片
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 顯示批次結果
+        function showBatchResults(status) {
+            const resultsDiv = document.getElementById('batch-results');
+            let html = '<div class="results-grid">';
+            
+            for (const [simulation, imageData] of Object.entries(status.results)) {
+                if (imageData) {
+                    html += `
+                        <div class="result-card">
+                            <img src="data:image/jpeg;base64,${imageData}" 
+                                 alt="${simulation}" 
+                                 class="result-image"
+                                 onclick="showImageModal(this.src)">
+                            <div class="result-info">
+                                <div class="result-title">${simulation}</div>
+                                <div class="result-description">${getSimulationDescription(simulation)}</div>
+                                <button class="button success" onclick="downloadImage('${simulation}', '${imageData}')">
+                                    📥 下載圖片
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+            
+            html += '</div>';
+            resultsDiv.innerHTML = html;
+        }
+
+        // 獲取軟片模擬描述
+        function getSimulationDescription(simulation) {
+            for (const simulations of Object.values(availableSimulations)) {
+                const sim = simulations.find(s => s.name === simulation);
+                if (sim) return sim.description;
+            }
+            return '經典軟片模擬效果';
+        }
+
+        // 下載圖片
+        function downloadImage(simulation, imageData) {
+            const link = document.createElement('a');
+            link.href = `data:image/jpeg;base64,${imageData}`;
+            link.download = `film_simulation_${simulation}_${Date.now()}.jpg`;
+            link.click();
+        }
+
+        // 顯示狀態訊息
+        function showStatus(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = `status-message status-${type}`;
+        }
+
+        // 切換軟片選擇
+        function toggleSimulation(name) {
+            const checkbox = document.getElementById(`sim-${name}`);
+            checkbox.checked = !checkbox.checked;
+        }
+
+        // 全選
+        function selectAll() {
+            document.querySelectorAll('input[name="simulation"]').forEach(cb => {
+                cb.checked = true;
+            });
+        }
+
+        // 選擇熱門
+        function selectPopular() {
+            // 先全部取消
+            document.querySelectorAll('input[name="simulation"]').forEach(cb => {
+                cb.checked = false;
+            });
+            
+            // 選擇熱門的
+            const popular = ['KODAK_PORTRA_400', 'VELVIA', 'KODACHROME_64', 'CLASSIC_CHROME', 'CINESTILL_800T', 'FUJICOLOR_C200'];
+            popular.forEach(sim => {
+                const checkbox = document.getElementById(`sim-${sim}`);
+                if (checkbox) checkbox.checked = true;
+            });
+        }
+
+        // 設置圖片預覽模態框
+        function setupModal() {
+            const modal = document.getElementById('image-modal');
+            const modalImg = document.getElementById('modal-image');
+            const span = document.getElementsByClassName('close')[0];
+            
+            span.onclick = function() {
+                modal.style.display = 'none';
+            }
+            
+            window.onclick = function(event) {
+                if (event.target == modal) {
+                    modal.style.display = 'none';
+                }
+            }
+        }
+
+        // 顯示圖片模態框
+        function showImageModal(src) {
+            const modal = document.getElementById('image-modal');
+            const modalImg = document.getElementById('modal-image');
+            modal.style.display = 'block';
+            modalImg.src = src;
+        }
+    </script>
+</body>
+</html>

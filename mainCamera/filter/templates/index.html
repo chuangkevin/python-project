@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎬 Fujifilm 軟片模擬器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            text-align: center;
+            padding: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .upload-section {
+            padding: 40px;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+        }
+
+        .upload-area {
+            border: 3px dashed #ddd;
+            border-radius: 15px;
+            padding: 60px 20px;
+            background: #f8f9fa;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .upload-area:hover {
+            border-color: #667eea;
+            background: #f0f2ff;
+        }
+
+        .upload-area.dragover {
+            border-color: #ff6b6b;
+            background: #fff0f0;
+        }
+
+        .upload-icon {
+            font-size: 4em;
+            color: #ddd;
+            margin-bottom: 20px;
+        }
+
+        .upload-text {
+            font-size: 1.3em;
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .upload-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .upload-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .progress-section {
+            padding: 20px 40px;
+            display: none;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #eee;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            text-align: center;
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .results-section {
+            padding: 40px;
+            display: none;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .film-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .film-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .film-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .film-info {
+            padding: 15px;
+        }
+
+        .film-name {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .film-description {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 15px;
+        }
+
+        .download-btn {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 0.9em;
+            width: 100%;
+            transition: opacity 0.3s ease;
+        }
+
+        .download-btn:hover {
+            opacity: 0.9;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: #ff6b6b;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .reset-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 1.1em;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .upload-section, .results-section {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 標題區域 -->
+        <div class="header">
+            <h1>🎬 Fujifilm 軟片模擬器</h1>
+            <p>上傳您的照片，體驗 11 種經典 Fujifilm 軟片效果</p>
+        </div>
+
+        <!-- 上傳區域 -->
+        <div class="upload-section" id="uploadSection">
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">📸</div>
+                <div class="upload-text">拖拽照片到這裡，或點擊選擇檔案</div>
+                <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
+                    選擇照片
+                </button>
+                <input type="file" id="fileInput" class="file-input" accept="image/*">
+            </div>
+            <p style="margin-top: 15px; color: #999;">
+                支援格式: JPG, PNG, GIF, BMP | 最大檔案: 16MB
+            </p>
+        </div>
+
+        <!-- 進度區域 -->
+        <div class="progress-section" id="progressSection">
+            <h3>🎬 正在處理軟片模擬...</h3>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="progress-text" id="progressText">準備中...</div>
+        </div>
+
+        <!-- 結果區域 -->
+        <div class="results-section" id="resultsSection">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3>🎨 軟片模擬結果</h3>
+                <button class="reset-btn" onclick="resetApp()">重新上傳</button>
+            </div>
+            <div class="results-grid" id="resultsGrid">
+                <!-- 結果將在這裡顯示 -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let sessionId = null;
+        let checkInterval = null;
+
+        // 檔案輸入事件
+        document.getElementById('fileInput').addEventListener('change', handleFileSelect);
+
+        // 拖拽功能
+        const uploadArea = document.getElementById('uploadArea');
+        
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        });
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                handleFile(file);
+            }
+        }
+
+        function handleFile(file) {
+            // 檢查檔案大小 (16MB)
+            if (file.size > 16 * 1024 * 1024) {
+                alert('檔案大小不能超過 16MB');
+                return;
+            }
+
+            // 檢查檔案類型
+            const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/bmp'];
+            if (!allowedTypes.includes(file.type)) {
+                alert('請選擇有效的圖像檔案 (JPG, PNG, GIF, BMP)');
+                return;
+            }
+
+            uploadFile(file);
+        }
+
+        function uploadFile(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            // 顯示進度區域
+            showSection('progress');
+            updateProgress(0, '上傳中...');
+
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    showError(data.error);
+                    return;
+                }
+
+                sessionId = data.session_id;
+                updateProgress(10, '開始處理軟片模擬...');
+                
+                // 開始檢查處理狀態
+                checkInterval = setInterval(checkProcessingStatus, 1000);
+            })
+            .catch(error => {
+                showError('上傳失敗: ' + error.message);
+            });
+        }
+
+        function checkProcessingStatus() {
+            if (!sessionId) return;
+
+            fetch(`/status/${sessionId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    showError(data.error);
+                    return;
+                }
+
+                const progress = Math.round(data.progress || 0);
+                updateProgress(progress, `處理中... ${progress}%`);
+
+                if (data.status === 'completed') {
+                    clearInterval(checkInterval);
+                    showResults(data.results);
+                } else if (data.status === 'error') {
+                    clearInterval(checkInterval);
+                    showError(data.error || '處理失敗');
+                }
+            })
+            .catch(error => {
+                showError('狀態檢查失敗: ' + error.message);
+            });
+        }
+
+        function showSection(section) {
+            // 隱藏所有區域
+            document.getElementById('uploadSection').style.display = 'none';
+            document.getElementById('progressSection').style.display = 'none';
+            document.getElementById('resultsSection').style.display = 'none';
+
+            // 顯示指定區域
+            if (section === 'upload') {
+                document.getElementById('uploadSection').style.display = 'block';
+            } else if (section === 'progress') {
+                document.getElementById('progressSection').style.display = 'block';
+            } else if (section === 'results') {
+                document.getElementById('resultsSection').style.display = 'block';
+            }
+        }
+
+        function updateProgress(percentage, text) {
+            document.getElementById('progressFill').style.width = percentage + '%';
+            document.getElementById('progressText').textContent = text;
+        }
+
+        function showResults(results) {
+            showSection('results');
+            
+            const grid = document.getElementById('resultsGrid');
+            grid.innerHTML = '';
+
+            // 排序結果 (原始圖像放在第一個)
+            const sortedResults = Object.entries(results).sort(([a], [b]) => {
+                if (a === 'Original') return -1;
+                if (b === 'Original') return 1;
+                return a.localeCompare(b);
+            });
+
+            sortedResults.forEach(([simName, data]) => {
+                const card = createFilmCard(simName, data);
+                grid.appendChild(card);
+            });
+        }
+
+        function createFilmCard(simName, data) {
+            const card = document.createElement('div');
+            card.className = 'film-card';
+
+            card.innerHTML = `
+                <img src="data:image/jpeg;base64,${data.image}" alt="${data.name}" class="film-image">
+                <div class="film-info">
+                    <div class="film-name">${data.name}</div>
+                    <div class="film-description">${data.description}</div>
+                    <button class="download-btn" onclick="downloadImage('${simName}')">
+                        📥 下載圖像
+                    </button>
+                </div>
+            `;
+
+            return card;
+        }
+
+        function downloadImage(simName) {
+            if (!sessionId) return;
+            
+            const link = document.createElement('a');
+            link.href = `/download/${sessionId}/${simName}`;
+            link.download = `${simName}_simulation.jpg`;
+            link.click();
+        }
+
+        function showError(message) {
+            clearInterval(checkInterval);
+            
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error';
+            errorDiv.textContent = '❌ ' + message;
+            
+            // 插入錯誤訊息
+            const container = document.querySelector('.container');
+            container.appendChild(errorDiv);
+            
+            // 3秒後移除錯誤訊息並重置
+            setTimeout(() => {
+                errorDiv.remove();
+                resetApp();
+            }, 3000);
+        }
+
+        function resetApp() {
+            clearInterval(checkInterval);
+            sessionId = null;
+            
+            // 重置檔案輸入
+            document.getElementById('fileInput').value = '';
+            
+            // 顯示上傳區域
+            showSection('upload');
+        }
+
+        // 頁面載入完成後顯示上傳區域
+        window.addEventListener('load', () => {
+            showSection('upload');
+        });
+    </script>
+</body>
+</html>
