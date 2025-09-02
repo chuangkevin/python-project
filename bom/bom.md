@@ -12,9 +12,9 @@
         - 需另外設計
     - 上方旋鈕
         - 空心編碼器
-        - 【淘宝】限时淘金币抵0.4元 https://e.tb.cn/h.hBl1SYZ4HjCnqk6?tk=rxX84LSCXDu tG-#22>lD 「ALPS原装 360度无限旋转 空心编码器 中空汽车导航数字电位器」
+        - 【淘宝】https://e.tb.cn/h.hyxkUMaRpBBe8c1?tk=BgXh4LoVjfU MF168 「EC28中空编码器模组旋钮空心旋转开关小家电智能家居开关直销」
         点击链接直接打开 或者 淘宝搜索直接打开
-            - 人民幣14
+            - 人民幣5
 
 
 ### 螢幕
@@ -36,19 +36,29 @@
 ### 主板
     - CM4，已有
     - 擴展板
-        - 【淘宝】7天无理由退货 https://e.tb.cn/h.hyyBcG3ooGI6ueT?tk=f9Rm4LhJbCk MF168 「微雪 树莓派CM4同尺寸扩展板 B型 RJ45千兆网口/USB/CSI 5V供电」
+        - 【淘宝】限时淘金币抵2.0元 https://e.tb.cn/h.hBVLTUcpmH0xXDo?tk=beT54LoiMHo HU006 「树莓派CM4/CM5 超迷你扩展板CM4 IO Board CM4-NANO-A/B/C」
         点击链接直接打开 或者 淘宝搜索直接打开
-            - 人民幣94.08
+            - 人民幣86
 
 ### 供電
     - type-c行動電源模組
         - 紫色單C+U口 C口支持輸入輸出
             - 人民幣4.15
     - 鋰電池
-        - 【淘宝】https://e.tb.cn/h.hyKnxwe9huOkAue?tk=9BIJ4L7dfey CZ005 「聚合物锂电池3.7v电芯103450大容量蓝牙耳机充电宝行车记录仪专用」
+        - 【淘宝】https://e.tb.cn/h.hBtsw95iLUbgZtE?tk=z3zX4LLlKE3 CZ321 「18650锂电池带线3.7V7.4V12V电动牙刷音响唱戏机充电动力电池组」
         点击链接直接打开 或者 淘宝搜索直接打开
-        - 6060100-5000毫安
-            - 人民幣22.1
+            - 人民幣24
+    - 電量模組
+        -  https://tw.shp.ee/1W41yjE
+            - 台幣111
 
 ### 閃光燈、補光燈
-    - LED
+    - 閃燈模組
+        - 【淘宝】https://e.tb.cn/h.hBV9pEXlwoKOu6j?tk=kSnd4Lofo8l MF287 「闪光灯集成模块，3.7VDC锂电池供电，功率10WS，信号触发智能关机」
+        点击链接直接打开 或者 淘宝搜索直接打开
+            - 人民幣30
+### 其他
+    - RTC模組
+        - 【【淘宝】7天无理由退货 https://e.tb.cn/h.hBd6YRWY5o6k7id?tk=ZbIy4LLlgH8 HU591 「DS1302/3231/1307 PCF8563实时时钟模块时间掉电走时存储计时带电」
+        点击链接直接打开 或者 淘宝搜索直接打开
+            - 人民幣8.5
