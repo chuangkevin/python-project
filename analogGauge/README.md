@@ -1,164 +1,197 @@
 # Epson RD-1 風格指針錶盤模組
 
-模擬 Epson RD-1 數位相機頂部的四個指針錶盤，提供獨立的指針模組和測試UI。
+高精度模擬 Epson RD-1 數位相機頂部的四個指針錶盤，提供整合式錶盤渲染和獨立測試UI。
 
-## 功能特色
+## 🎯 整合式錶盤系統
 
-### 四個指針錶盤
-- **剩餘拍攝數** (`SHOTS`): E → 10 → 20 → 50 → 100 → 500
-- **白平衡** (`WB`): A(自動) → ☀(晴天) → ⛅(多雲) → ☁(陰天) → 💡(白熾燈) → 💡(螢光燈)
-- **電池電量** (`BATTERY`): E(空) → 1/4 → 1/2 → 3/4 → F(滿)
-- **影像品質** (`QUALITY`): R(RAW) → H(高品質JPEG) → N(一般JPEG)
+### 核心特色
 
-### 核心模組 (`rd1_gauge.py`)
-- 獨立的指針邏輯，無UI依賴
-- 支援單個指針和多指針布局
-- 可程式化控制指針數值
-- 支援圖像輸出（PNG）
+- **像素級精確復刻**：基於真實 RD-1 相機照片精確重現錶盤佈局
+- **超流暢 120fps 動畫**：微步插值動畫系統，8.3ms 更新間隔
+- **整合式顯示**：四個錶盤完美整合在 240x240 圓形顯示器
+- **高品質渲染**：反鋸齒線條、精細刻度、專業色彩
 
-### 測試UI (`test_ui.py`)
-- 圖形化測試介面
-- 即時指針預覽
-- 滑桿和按鈕控制
-- 批量操作和動畫演示
-- 圖像保存功能
+### 四個指針錶盤佈局
 
-## 安裝需求
+```text
+      [WB]           [QUALITY]
+       90°             90°
+    (左上角)        (右上角)
+
+           [SHOTS]
+            360°
+         (中央圓形)
+
+         [BATTERY]
+            90°
+         (中下方)
+```
+
+### 錶盤規格
+
+- **SHOTS (拍攝數)**：360° 圓形錶盤，外圍刻度標示
+  - 數值：E → 10 → 20 → 50 → 100 → 500
+- **WHITE BALANCE (白平衡)**：90° 扇形錶盤，左上角位置
+  - 數值：A(自動) → ☀(晴天) → ⛅(多雲) → ☁(陰天) → 💡(白熾燈) → 💡(螢光燈)
+- **BATTERY (電池電量)**：90° 扇形錶盤，中下方位置，向上指向
+  - 數值：E(空) → 1/4 → 1/2 → 3/4 → F(滿)
+- **QUALITY (影像品質)**：90° 扇形錶盤，右上角位置
+  - 數值：R(RAW) → H(高品質JPEG) → N(一般JPEG)
+
+## 🔧 技術架構
+
+### 核心檔案
+
+- **`rd1_gauge.py`** - RD1Gauge 核心類別
+  - 整合式錶盤渲染引擎
+  - 120fps 微步動畫系統
+  - 無 UI 依賴的純圖像生成
+- **`test_integrated.py`** - 整合式錶盤完整測試
+- **`test_ui.py`** - 傳統 UI 測試介面
+- **`requirements.txt`** - 依賴套件清單
+
+### 動畫系統
+
+- **微步插值**：線性插值 + 微步進系統
+- **更新頻率**：120fps (8.3ms 間隔)
+- **反鋸齒渲染**：多層線條重疊技術
+- **流暢度**：支援即時數值變化無卡頓
+
+### 渲染特色
+
+- **像素級精確**：基於真實 RD-1 相機照片測量
+- **專業配色**：復古相機風格色彩方案
+- **高品質線條**：反鋸齒、多重採樣
+- **圓形顯示器最佳化**：240x240 完美適配
+
+## 🚀 快速開始
+
+### 安裝依賴
 
 ```bash
 pip install -r requirements.txt
 ```
 
-## 使用方法
-
-### 1. 獨立模組使用
+### 基本使用
 
 ```python
 from rd1_gauge import RD1Gauge
 
-# 創建指針實例
-gauge = RD1Gauge(width=240, height=240)
+# 創建整合式錶盤實例
+gauge = RD1Gauge()
 
-# 設置指針數值
-gauge.set_value("SHOTS", 3)    # 指向 "50"
-gauge.set_value("WB", 1)       # 指向 "☀"
-gauge.set_value("BATTERY", 4)  # 指向 "F"
-gauge.set_value("QUALITY", 0)  # 指向 "R"
+# 設定數值 (索引方式)
+gauge.set_value("SHOTS", 2)    # "20"
+gauge.set_value("WB", 1)       # "☀" (晴天)
+gauge.set_value("BATTERY", 3)  # "3/4"
+gauge.set_value("QUALITY", 1)  # "H" (高品質)
 
-# 繪製單個指針
-img = gauge.draw_gauge("SHOTS")
-img.save("shots_gauge.png")
+# 更新動畫 (建議 120fps 循環調用)
+gauge.update_animation()
 
-# 繪製所有指針（2x2布局）
-all_img = gauge.draw_all_gauges("2x2")
-all_img.save("all_gauges.png")
-
-# 獲取當前狀態
-info = gauge.get_gauge_info()
-print(f"剩餘拍攝數: {info['SHOTS']['current_value']}")
+# 生成整合錶盤圖像 (主要用法)
+img = gauge.draw_integrated_rd1_display()
+img.show()  # 或 img.save("rd1_display.png")
 ```
 
-### 2. 測試UI使用
+### 整合式錶盤測試
 
 ```bash
+# 執行整合式錶盤完整測試
+python test_integrated.py
+
+# 執行傳統 UI 測試 (開發/調試用)
 python test_ui.py
 ```
 
-#### UI功能說明:
-- **指針類型選擇**: 選擇要調整的指針
-- **數值調整**: 滑桿或下拉選單調整數值
-- **按鈕控制**: 上一個/下一個/重置
-- **即時預覽**: 單個指針和全部指針預覽
-- **批量操作**: 全部重置/隨機設置/演示動畫
-- **圖像保存**: 保存當前指針狀態為PNG
+## 📋 API 參考
 
-## API 文檔
-
-### RD1Gauge 類別
-
-#### 初始化
-```python
-RD1Gauge(width=240, height=240)
-```
+### RD1Gauge 核心類別
 
 #### 主要方法
-- `set_value(gauge_type, value)`: 設置指針數值
-- `get_value(gauge_type)`: 獲取當前指針數值  
-- `draw_gauge(gauge_type)`: 繪製單個指針錶盤
-- `draw_all_gauges(layout)`: 繪製所有指針（布局: "2x2", "1x4", "4x1"）
-- `get_gauge_info()`: 獲取所有指針狀態信息
 
-#### 指針類型
-- `"SHOTS"`: 剩餘拍攝數
-- `"WB"`: 白平衡
-- `"BATTERY"`: 電池電量
-- `"QUALITY"`: 影像品質
+- `set_value(gauge_type, value_index)` - 設定指針數值（索引）
+- `update_animation()` - 更新動畫狀態（120fps 調用）
+- `draw_integrated_rd1_display()` - **生成整合式錶盤圖像**
+- `get_gauge_info()` - 取得所有錶盤狀態資訊
 
-## 整合到樹莓派項目
+#### 錶盤類型常數
 
-將此模組整合到主項目的圓形LCD顯示:
+- `"SHOTS"` - 剩餘拍攝數錶盤
+- `"WB"` - 白平衡錶盤  
+- `"BATTERY"` - 電池電量錶盤
+- `"QUALITY"` - 影像品質錶盤
+
+## 🔗 整合到主專案
+
+### 在樹莓派相機系統中使用
 
 ```python
 from analogGauge.rd1_gauge import RD1Gauge
+from gc9a01 import GC9A01
 
-# 在 dual_display_cam.py 中
-gauge = RD1Gauge(width=240, height=240)
+# 初始化錶盤和圓形顯示器
+gauge = RD1Gauge()
+display = GC9A01(port=0, cs=0, dc=25, rst=24)
 
-def update_gauge_from_camera(picam2):
-    # 根據相機狀態更新指針
-    shots_remaining = get_shots_remaining()  # 你的邏輯
-    battery_level = get_battery_level()      # 你的邏輯
+def update_display_from_camera_state():
+    """根據相機狀態更新錶盤顯示"""
+    # 取得相機狀態（你的實作）
+    shots = get_remaining_shots()    # 0-5 的索引
+    wb_mode = get_white_balance()    # 0-5 的索引
+    battery = get_battery_level()    # 0-4 的索引
+    quality = get_image_quality()    # 0-2 的索引
     
-    gauge.set_value("SHOTS", shots_remaining)
-    gauge.set_value("BATTERY", battery_level)
+    # 更新錶盤數值
+    gauge.set_value("SHOTS", shots)
+    gauge.set_value("WB", wb_mode)
+    gauge.set_value("BATTERY", battery)
+    gauge.set_value("QUALITY", quality)
     
-    return gauge.draw_gauge("SHOTS")  # 或其他指針
+    # 生成並顯示整合式錶盤
+    img = gauge.draw_integrated_rd1_display()
+    display.display(img)
+
+# 在主迴圈中 120fps 調用
+while True:
+    gauge.update_animation()  # 流暢動畫
+    update_display_from_camera_state()
+    time.sleep(1/120)  # 8.3ms 間隔
 ```
 
-## 文件結構
+## 📁 檔案結構
 
-```
+```text
 analogGauge/
-├── rd1_gauge.py     # 核心指針模組
-├── test_ui.py       # 測試UI
-├── requirements.txt # 依賴套件
-└── README.md       # 說明文檔
+├── rd1_gauge.py           # 核心錶盤渲染引擎
+├── test_integrated.py     # 整合式錶盤測試
+├── test_ui.py            # 傳統 UI 測試介面
+├── requirements.txt      # 依賴套件清單
+├── glass_overlay.png     # 玻璃覆蓋層素材
+└── README.md            # 技術文檔
 ```
 
-## 技術細節
+## ⚙️ 技術規格
 
-- **圖像庫**: PIL (Pillow)
-- **UI框架**: tkinter (測試用)
-- **指針渲染**: 基於三角函數的向量計算
-- **更新頻率**: 100ms (測試UI)
-- **輸出格式**: RGB PNG 圖像
+- **渲染引擎**: PIL (Pillow) 圖像處理
+- **動畫系統**: 120fps 微步插值
+- **顯示器支援**: 240x240 圓形 LCD 最佳化
+- **輸出格式**: RGB PIL Image 物件
+- **相依性**: 最小化依賴，無 UI 框架綁定
 
-## 擴展功能
+## 🛠 開發工具
 
-### 自訂指針配置
-可以修改 `GAUGE_CONFIGS` 來自訂指針:
+### 測試程式
 
-```python
-GAUGE_CONFIGS = {
-    "CUSTOM": {
-        "name": "自訂指針",
-        "values": ["Min", "Mid", "Max"],
-        "color": (255, 255, 0)  # 黃色指針
-    }
-}
-```
+- `test_integrated.py` - 專為整合式錶盤設計的完整測試
+- `test_ui.py` - 傳統 tkinter UI，適合開發調試
 
-### 不同布局支援
-- `"2x2"`: 2x2 網格布局
-- `"1x4"`: 橫向排列  
-- `"4x1"`: 縱向排列
+### 除錯建議
 
-## 故障排除
+1. **動畫不流暢**: 確保 120fps 調用 `update_animation()`
+2. **顯示異常**: 檢查 PIL 版本 >= 10.0.0
+3. **記憶體問題**: 避免頻繁建立新 RD1Gauge 實例
 
-1. **圖像顯示問題**: 確保安裝 Pillow >= 10.0.0
-2. **UI響應緩慢**: 調整 `time.sleep(0.1)` 更新間隔
-3. **字體顯示異常**: 系統需支援中文字體
+## 📄 授權
 
-## 授權
-
-此項目為開源項目，遵循 MIT 授權條款。
+MIT 授權條款 - 詳見專案根目錄 LICENSE 檔案。
