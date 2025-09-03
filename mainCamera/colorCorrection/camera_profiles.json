@@ -1,0 +1,131 @@
+{
+  "pi_camera_v5647": {
+    "name": "Raspberry Pi Camera V5647 (OV5647)",
+    "sensor_type": "OmniVision OV5647",
+    "manufacturer": "Raspberry Pi Foundation",
+    "sensor_characteristics": {
+      "resolution": [2592, 1944],
+      "pixel_size_um": 1.4,
+      "optical_format": "1/4 inch",
+      "color_filter_array": "RGGB Bayer"
+    },
+    "color_correction_matrix": [
+      [1.05, -0.08, 0.03],
+      [-0.02, 0.92, 0.10],
+      [0.05, -0.15, 1.10]
+    ],
+    "white_balance_gains": [1.0, 0.95, 1.08],
+    "saturation_adjustment": 1.05,
+    "contrast_curve": "mild_s_curve",
+    "outdoor_optimization": {
+      "sky_blue_correction": true,
+      "vegetation_green_enhancement": true,
+      "skin_tone_protection": true
+    },
+    "exposure_compensation": 0.1,
+    "gamma_correction": 1.1,
+    "known_issues": [
+      "戶外拍攝時藍天偏紫",
+      "膚色偏黃",
+      "綠色通道較強",
+      "整體偏暖調"
+    ],
+    "optimized_scenes": [
+      "戶外風景",
+      "街頭攝影",
+      "自然光人像"
+    ]
+  },
+  "pi_camera_v3": {
+    "name": "Raspberry Pi Camera V3 (IMX708)",
+    "sensor_type": "Sony IMX708",
+    "manufacturer": "Raspberry Pi Foundation",
+    "sensor_characteristics": {
+      "resolution": [4608, 2592],
+      "pixel_size_um": 1.4,
+      "optical_format": "1/2.43 inch",
+      "color_filter_array": "RGGB Bayer"
+    },
+    "color_correction_matrix": [
+      [1.02, -0.05, 0.03],
+      [-0.01, 0.98, 0.03],
+      [0.02, -0.08, 1.06]
+    ],
+    "white_balance_gains": [1.0, 0.97, 1.03],
+    "saturation_adjustment": 1.02,
+    "contrast_curve": "mild_s_curve",
+    "outdoor_optimization": {
+      "sky_blue_correction": true,
+      "vegetation_green_enhancement": true,
+      "skin_tone_protection": true
+    },
+    "exposure_compensation": 0.05,
+    "gamma_correction": 1.05,
+    "known_issues": [
+      "輕微暖調偏移",
+      "低光噪點較多"
+    ],
+    "optimized_scenes": [
+      "高解析度風景",
+      "商品攝影",
+      "細節豐富的場景"
+    ]
+  },
+  "pi_camera_hq": {
+    "name": "Raspberry Pi HQ Camera (IMX477)",
+    "sensor_type": "Sony IMX477",
+    "manufacturer": "Raspberry Pi Foundation",
+    "sensor_characteristics": {
+      "resolution": [4056, 3040],
+      "pixel_size_um": 1.55,
+      "optical_format": "1/2.3 inch",
+      "color_filter_array": "RGGB Bayer"
+    },
+    "color_correction_matrix": [
+      [1.01, -0.02, 0.01],
+      [0.00, 1.00, 0.00],
+      [0.01, -0.03, 1.02]
+    ],
+    "white_balance_gains": [1.0, 0.99, 1.01],
+    "saturation_adjustment": 1.0,
+    "contrast_curve": "linear",
+    "outdoor_optimization": {
+      "sky_blue_correction": false,
+      "vegetation_green_enhancement": false,
+      "skin_tone_protection": true
+    },
+    "exposure_compensation": 0.0,
+    "gamma_correction": 1.0,
+    "known_issues": [
+      "色彩表現較為中性",
+      "需要良好鏡頭搭配"
+    ],
+    "optimized_scenes": [
+      "專業攝影",
+      "可換鏡頭系統",
+      "精確色彩要求"
+    ]
+  },
+  "generic_camera": {
+    "name": "通用相機",
+    "sensor_type": "Generic",
+    "manufacturer": "Generic",
+    "color_correction_matrix": [
+      [1.0, 0.0, 0.0],
+      [0.0, 1.0, 0.0],
+      [0.0, 0.0, 1.0]
+    ],
+    "white_balance_gains": [1.0, 1.0, 1.0],
+    "saturation_adjustment": 1.0,
+    "contrast_curve": "linear",
+    "outdoor_optimization": {
+      "sky_blue_correction": false,
+      "vegetation_green_enhancement": false,
+      "skin_tone_protection": false
+    },
+    "exposure_compensation": 0.0,
+    "gamma_correction": 1.0,
+    "known_issues": [],
+    "optimized_scenes": ["通用場景"]
+  }
+}
