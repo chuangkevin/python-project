@@ -1,0 +1,38 @@
+[Unit]
+Description=Ultra Fast Fullscreen Camera (3-second boot)
+After=sysinit.target local-fs.target
+Before=network.target multi-user.target graphical.target
+DefaultDependencies=no
+
+[Service]
+Type=simple
+User=kevin
+Group=kevin
+WorkingDirectory=/home/kevin
+
+# 最高優先級
+Nice=-20
+IOSchedulingClass=1
+IOSchedulingPriority=4
+
+# 環境變數
+Environment=DISPLAY=:0
+
+# 等待硬體就緒（最小延遲）
+ExecStartPre=/bin/sleep 1
+
+# 啟動全螢幕相機（永久運行）
+ExecStart=/usr/bin/libcamera-hello -t 0
+
+# 重啟設定
+Restart=on-failure
+RestartSec=2
+
+# 日誌設定
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=ultrafast-camera
+
+[Install]
+WantedBy=sysinit.target
+Alias=fullscreen-camera.service

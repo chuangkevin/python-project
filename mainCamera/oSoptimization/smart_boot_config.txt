@@ -1,0 +1,40 @@
+# 智能開機配置 - 相機優先，網路延遲
+# 針對 3 秒開機到相機 UI 的優化配置
+
+[all]
+# GPU 記憶體優化（相機需要）
+gpu_mem=128
+
+# 停用音效節省資源
+dtparam=audio=off
+
+# 停用開機畫面加快啟動
+disable_splash=1
+
+# 開機延遲設為 0
+boot_delay=0
+
+# 啟用 SPI（3.5" 螢幕）
+dtparam=spi=on
+
+# 3.5" 螢幕配置 - 針對相機應用優化
+dtoverlay=ili9486,rotate=90,speed=32000000,fps=25
+fbcon=map:10
+
+# 停用不需要的硬體（但保留網路）
+dtparam=i2c_arm=off
+dtparam=i2s=off
+dtparam=act_led_trigger=none
+dtparam=pwr_led_trigger=none
+
+# 相機配置
+camera_auto_detect=1
+
+# CPU 效能模式（開機時最大效能）
+force_turbo=1
+
+# 停用藍牙（節省開機時間）
+dtoverlay=disable-bt
+
+# 保留 WiFi（但不阻塞開機）
+# dtoverlay=disable-wifi （註解掉，保留網路）
