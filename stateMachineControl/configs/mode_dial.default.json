@@ -1,0 +1,181 @@
+{
+  "version": "1.0.0",
+  "dialOrder": [
+    "shutter", "iso", "ev", "wb", "film", "flash", "metering", "self_timer", "af_mode", "display", "menu"
+  ],
+  "ui": {
+    "icons": {
+      "shutter": "icon_shutter",
+      "iso": "icon_iso",
+      "ev": "icon_ev",
+      "wb": "icon_wb",
+      "film": "icon_film",
+      "flash": "icon_flash",
+      "metering": "icon_metering",
+      "self_timer": "icon_timer",
+      "af_mode": "icon_af",
+      "display": "icon_display",
+      "menu": "icon_menu"
+    }
+  },
+  "modes": [
+    {
+      "id": "shutter",
+      "label": "快門速度",
+      "type": "enum",
+      "hint": "右轉盤切換快門檔位，按壓切 M/AE",
+      "enum": [
+        { "id": "1/1000", "label": "1/1000", "value": 0.001, "bindings": { "control": "ExposureTime" } },
+        { "id": "1/500",  "label": "1/500",  "value": 0.002, "bindings": { "control": "ExposureTime" } },
+        { "id": "1/250",  "label": "1/250",  "value": 0.004, "bindings": { "control": "ExposureTime" } },
+        { "id": "1/125",  "label": "1/125",  "value": 0.008, "bindings": { "control": "ExposureTime" } },
+        { "id": "1/60",   "label": "1/60",   "value": 0.0167,"bindings": { "control": "ExposureTime" } },
+        { "id": "1/30",   "label": "1/30",   "value": 0.0333,"bindings": { "control": "ExposureTime" } },
+        { "id": "1/15",   "label": "1/15",   "value": 0.0667,"bindings": { "control": "ExposureTime" } },
+        { "id": "1/8",    "label": "1/8",    "value": 0.125, "bindings": { "control": "ExposureTime" } },
+        { "id": "1/4",    "label": "1/4",    "value": 0.25,  "bindings": { "control": "ExposureTime" } },
+        { "id": "1/2",    "label": "1/2",    "value": 0.5,   "bindings": { "control": "ExposureTime" } },
+        { "id": "1",      "label": "1s",     "value": 1.0,   "bindings": { "control": "ExposureTime" } }
+      ],
+      "events": { "rotate": "next", "press": "toggle", "longPress": "noop" }
+    },
+
+    {
+      "id": "iso",
+      "label": "ISO",
+      "type": "enum",
+      "enum": [
+        { "id": "iso_100",  "label": "100",  "value": 100,  "bindings": { "control": "ISO" } },
+        { "id": "iso_200",  "label": "200",  "value": 200,  "bindings": { "control": "ISO" } },
+        { "id": "iso_400",  "label": "400",  "value": 400,  "bindings": { "control": "ISO" } },
+        { "id": "iso_800",  "label": "800",  "value": 800,  "bindings": { "control": "ISO" } },
+        { "id": "iso_1600", "label": "1600", "value": 1600, "bindings": { "control": "ISO" } }
+      ],
+      "events": { "rotate": "next", "press": "confirm", "longPress": "noop" }
+    },
+
+    {
+      "id": "ev",
+      "label": "曝光補償",
+      "type": "range",
+      "range": { "min": -3.0, "max": 3.0, "step": 0.33, "unit": "EV", "display": "{value:+.2f}EV", "bindings": { "control": "ExposureValue" } },
+      "events": { "rotate": "inc", "press": "confirm", "longPress": "noop" }
+    },
+
+    {
+      "id": "wb",
+      "label": "白平衡",
+      "type": "group",
+      "group": [
+        {
+          "id": "wb_preset",
+          "label": "WB：預設",
+          "type": "enum",
+          "enum": [
+            { "id": "auto",        "label": "自動",   "bindings": { "control": "AwbMode", "value": "auto" } },
+            { "id": "daylight",    "label": "日光",   "bindings": { "control": "AwbMode", "value": "daylight" } },
+            { "id": "cloudy",      "label": "陰天",   "bindings": { "control": "AwbMode", "value": "cloudy" } },
+            { "id": "incandescent","label": "鎢絲燈", "bindings": { "control": "AwbMode", "value": "incandescent" } },
+            { "id": "fluorescent", "label": "螢光燈", "bindings": { "control": "AwbMode", "value": "fluorescent" } },
+            { "id": "shade",       "label": "陰影",   "bindings": { "control": "AwbMode", "value": "shade" } },
+            { "id": "custom",      "label": "自定義", "bindings": { "control": "AwbEnable", "value": false } }
+          ],
+          "events": { "rotate": "next", "press": "confirm", "longPress": "enterSub" }
+        },
+        {
+          "id": "wb_tweak",
+          "label": "WB：微調",
+          "type": "range",
+          "range": { "min": -10, "max": 10, "step": 1, "unit": "step", "display": "A/B {value}", "bindings": { "control": "ColourGains_AB" } },
+          "events": { "rotate": "inc", "press": "confirm", "longPress": "back" }
+        },
+        {
+          "id": "wb_whitecard",
+          "label": "WB：白卡測光",
+          "type": "action",
+          "hint": "長按右轉盤→擷取中心區塊計算增益",
+          "events": { "rotate": "noop", "press": "confirm", "longPress": "custom" }
+        }
+      ]
+    },
+
+    {
+      "id": "film",
+      "label": "軟片模擬",
+      "type": "enum",
+      "enum": [
+        { "id": "classic_chrome", "label": "Classic Chrome", "bindings": { "pipeline": "filmSim", "value": "classic_chrome" } },
+        { "id": "kodak_400",      "label": "Kodak 400",      "bindings": { "pipeline": "filmSim", "value": "kodak_400" } },
+        { "id": "acros",          "label": "ACROS",          "bindings": { "pipeline": "filmSim", "value": "acros" } }
+      ],
+      "events": { "rotate": "next", "press": "confirm", "longPress": "noop" }
+    },
+
+    {
+      "id": "flash",
+      "label": "閃燈",
+      "type": "toggle",
+      "toggle": {
+        "on":  { "label": "開", "bindings": { "gpio": "FLASH_EN", "value": 1 } },
+        "off": { "label": "關", "bindings": { "gpio": "FLASH_EN", "value": 0 } }
+      },
+      "events": { "rotate": "noop", "press": "toggle", "longPress": "noop" }
+    },
+
+    {
+      "id": "metering",
+      "label": "測光模式",
+      "type": "enum",
+      "enum": [
+        { "id": "average", "label": "平均", "bindings": { "control": "Metering", "value": "average" } },
+        { "id": "center",  "label": "中央重點", "bindings": { "control": "Metering", "value": "center" } },
+        { "id": "spot",    "label": "點測", "bindings": { "control": "Metering", "value": "spot" } }
+      ],
+      "events": { "rotate": "next", "press": "confirm", "longPress": "noop" }
+    },
+
+    {
+      "id": "self_timer",
+      "label": "自拍時長",
+      "type": "enum",
+      "enum": [
+        { "id": "off",  "label": "關",  "bindings": { "control": "SelfTimer", "value": 0 } },
+        { "id": "2s",   "label": "2 秒","bindings": { "control": "SelfTimer", "value": 2 } },
+        { "id": "10s",  "label": "10 秒","bindings": { "control": "SelfTimer", "value": 10 } }
+      ],
+      "events": { "rotate": "next", "press": "confirm", "longPress": "noop" }
+    },
+
+    {
+      "id": "af_mode",
+      "label": "對焦模式",
+      "type": "enum",
+      "enum": [
+        { "id": "af_s", "label": "AF-S", "bindings": { "control": "AfMode", "value": "single" } },
+        { "id": "af_c", "label": "AF-C", "bindings": { "control": "AfMode", "value": "continuous" } },
+        { "id": "mf",   "label": "MF",   "bindings": { "control": "AfMode", "value": "manual" } }
+      ],
+      "events": { "rotate": "next", "press": "confirm", "longPress": "noop" }
+    },
+
+    {
+      "id": "display",
+      "label": "顯示資訊",
+      "type": "enum",
+      "enum": [
+        { "id": "full",    "label": "完整資訊", "bindings": { "ui": "osd_level", "value": "full" } },
+        { "id": "minimal", "label": "簡潔",     "bindings": { "ui": "osd_level", "value": "minimal" } },
+        { "id": "off",     "label": "關閉",     "bindings": { "ui": "osd_level", "value": "off" } }
+      ],
+      "events": { "rotate": "next", "press": "confirm", "longPress": "noop" }
+    },
+
+    {
+      "id": "menu",
+      "label": "設定選單",
+      "type": "action",
+      "hint": "按壓進入系統設定",
+      "events": { "rotate": "noop", "press": "enter", "longPress": "noop" }
+    }
+  ]
+}

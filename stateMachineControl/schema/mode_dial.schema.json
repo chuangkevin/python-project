@@ -1,0 +1,100 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ModeDialConfig",
+  "type": "object",
+  "required": ["version", "dialOrder", "modes"],
+  "properties": {
+    "version": { "type": "string" },
+    "dialOrder": {
+      "description": "左轉盤的模式順序（轉一格換到下一個）",
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 1
+    },
+    "ui": {
+      "description": "全域 UI 設定（可選）",
+      "type": "object",
+      "properties": {
+        "icons": { "type": "object", "additionalProperties": { "type": "string" } }
+      },
+      "additionalProperties": false
+    },
+    "modes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "label", "type"],
+        "properties": {
+          "id": { "type": "string" },
+          "label": { "type": "string" },
+          "type": {
+            "type": "string",
+            "enum": ["enum", "range", "toggle", "action", "group"]
+          },
+          "hint": { "type": "string" },
+
+          "enum": {
+            "description": "type=enum 時的選項",
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["id", "label"],
+              "properties": {
+                "id": { "type": "string" },
+                "label": { "type": "string" },
+                "value": {},
+                "icon": { "type": "string" },
+                "bindings": { "type": "object" }
+              },
+              "additionalProperties": false
+            }
+          },
+
+          "range": {
+            "description": "type=range 時的數值設定",
+            "type": "object",
+            "required": ["min", "max", "step"],
+            "properties": {
+              "min": { "type": "number" },
+              "max": { "type": "number" },
+              "step": { "type": "number" },
+              "unit": { "type": "string" },
+              "display": { "type": "string" },
+              "bindings": { "type": "object" }
+            },
+            "additionalProperties": false
+          },
+
+          "toggle": {
+            "description": "type=toggle 的 on/off 行為",
+            "type": "object",
+            "properties": {
+              "on": { "type": "object", "properties": { "label": { "type": "string" }, "bindings": { "type": "object" } }, "additionalProperties": false },
+              "off": { "type": "object", "properties": { "label": { "type": "string" }, "bindings": { "type": "object" } }, "additionalProperties": false }
+            },
+            "additionalProperties": false
+          },
+
+          "group": {
+            "description": "把多個子模式包成一組（例如 WB：預設/微調/白卡）",
+            "type": "array",
+            "items": { "$ref": "#/properties/modes/items" }
+          },
+
+          "events": {
+            "description": "右轉盤/按壓/長按 的事件對應",
+            "type": "object",
+            "properties": {
+              "rotate": { "type": "string", "enum": ["next", "prev", "inc", "dec"] },
+              "press": { "type": "string", "enum": ["confirm", "toggle", "enter", "noop"] },
+              "longPress": { "type": "string", "enum": ["enterSub", "back", "custom", "noop"] }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

@@ -89,6 +89,57 @@ class UltraCameraApp:
             print(f"❌ 拍照失敗: {e}")
             return None
     
+    def take_raw_photo(self, output_dir="/tmp"):
+        """拍攝最大解析度 RAW 格式照片"""
+        try:
+            # 暫停當前預覽
+            self.picam2.stop()
+            
+            # 設定最大解析度 RAW 格式配置
+            raw_config = self.picam2.create_still_configuration(
+                main={"size": (2592, 1944)},  # OV5647 最大解析度
+                raw={"size": (2592, 1944), "format": "SGBRG10"}  # RAW 格式
+            )
+            
+            self.picam2.configure(raw_config)
+            self.picam2.start()
+            
+            # 等待相機穩定
+            time.sleep(2)
+            
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            raw_filename = f"raw_5mp_{timestamp}.dng"
+            jpg_filename = f"raw_5mp_{timestamp}.jpg"
+            
+            raw_filepath = os.path.join(output_dir, raw_filename)
+            jpg_filepath = os.path.join(output_dir, jpg_filename)
+            
+            # 拍攝 RAW 和 JPG
+            request = self.picam2.capture_request()
+            
+            # 儲存 RAW 格式 (.dng)
+            with open(raw_filepath, "wb") as f:
+                f.write(request.make_buffer("raw"))
+            
+            # 儲存 JPG 格式
+            request.save("main", jpg_filepath)
+            request.release()
+            
+            print(f"📸 RAW 照片已儲存:")
+            print(f"   RAW: {raw_filename} ({os.path.getsize(raw_filepath) / 1024 / 1024:.1f} MB)")
+            print(f"   JPG: {jpg_filename} ({os.path.getsize(jpg_filepath) / 1024 / 1024:.1f} MB)")
+            
+            # 恢復原預覽配置
+            self.setup_camera()
+            
+            return raw_filepath, jpg_filepath
+            
+        except Exception as e:
+            print(f"❌ RAW 拍攝失敗: {e}")
+            # 嘗試恢復原配置
+            self.setup_camera()
+            return None, None
+    
     def display_info_overlay(self):
         """顯示基本資訊"""
         info_lines = [

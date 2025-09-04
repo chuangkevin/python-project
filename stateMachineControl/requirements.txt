@@ -1,0 +1,8 @@
+# ModeDial 依賴套件
+jsonschema>=4.0.0  # JSON Schema 驗證 (可選)
+
+# UI 模擬器依賴
+# tkinter 通常內建於 Python，不需額外安裝
+
+# 開發和測試
+# pytest>=7.0.0  # 測試框架 (可選)
