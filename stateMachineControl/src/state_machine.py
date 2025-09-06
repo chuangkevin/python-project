@@ -337,13 +337,15 @@ class ModeDial:
     def get_current_state(self) -> Dict[str, Any]:
         """取得完整的當前狀態"""
         current_mode = self.get_current_mode()
-        current_mode_id = self.get_current_mode_id()
+        current_mode_id = self.get_current_active_mode_id()  # 使用活躍模式ID
+        main_mode_id = self.get_current_mode_id()  # 主模式ID
         
         state = {
             "version": "1.0.0",
             "current_mode_index": self.current_mode_index,
             "current_mode": current_mode,
-            "current_mode_id": current_mode_id,
+            "current_mode_id": current_mode_id,  # 活躍模式ID
+            "main_mode_id": main_mode_id,  # 主模式ID
             "current_values": self.current_values.copy(),
             "sub_mode_stack": self.sub_mode_stack.copy(),
             "dial_order": self.dial_order.copy(),
