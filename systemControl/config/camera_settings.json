@@ -1,0 +1,41 @@
+{
+  "image": {
+    "quality": "medium",
+    "format": "both",
+    "jpeg_quality": 85,
+    "size": "full",
+    "hdr_enabled": true,
+    "noise_reduction": "medium",
+    "sharpness": 1,
+    "contrast": -1,
+    "saturation": 0
+  },
+  "video": {
+    "resolution": "4k",
+    "framerate": 24,
+    "bitrate": "high",
+    "format": "mp4"
+  },
+  "focus": {
+    "mode": "single",
+    "area": "center",
+    "manual_position": 0.5
+  },
+  "exposure": {
+    "mode": "manual",
+    "metering": "center",
+    "iso_mode": "auto",
+    "iso_range": [
+      200,
+      6400
+    ],
+    "compensation": -0.7
+  },
+  "white_balance": {
+    "mode": "daylight",
+    "gains": [
+      1.0,
+      1.0
+    ]
+  }
+}
