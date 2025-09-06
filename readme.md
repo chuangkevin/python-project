@@ -44,11 +44,14 @@
 ## 📁 專案架構 (重構版本)
 
 ### 🎯 架構重構進度追蹤
-- [ ] **階段1**: 配置檔案統一化 (configs → profiles)
-- [ ] **階段2**: 硬體抽象層建立
-- [ ] **階段3**: 軟片模擬系統整合  
-- [ ] **階段4**: 模組整合層建立
-- [ ] **階段5**: 完整系統測試
+- [ ] **階段1**: 配置檔案統一化 (configs → profiles) - 待開始
+- [ ] **階段2**: 硬體抽象層建立 - 待開始  
+- [x] **階段0.5**: 基礎模組完善 - ✅ **已完成**
+  - ✅ stateMachineControl 狀態機邏輯完成
+  - ✅ systemControl/settings 設定系統完成
+- [ ] **階段3**: 軟片模擬系統整合 - 待開始
+- [ ] **階段4**: 模組整合層建立 - 待開始
+- [ ] **階段5**: 完整系統測試 - 待開始
 
 ```
 python-project/
@@ -59,11 +62,17 @@ python-project/
 │   ├── ui/              # 主界面與 Live-View
 │   ├── core/            # 核心相機功能
 │   └── integration/      # 🔄 與systemControl整合層 (階段4)
-├── stateMachineControl/  # 純狀態機邏輯 ✅ (精簡化)
+├── stateMachineControl/  # 純狀態機邏輯 ✅ (完成)
 │   ├── src/             # 狀態轉換核心邏輯
-│   │   ├── state_machine.py     # 狀態機實作
-│   │   └── mode_dial.py         # 模式轉盤邏輯
-│   └── simulator.py     # 開發測試工具
+│   │   ├── state_machine.py     # 狀態機實作 ✅
+│   │   ├── mode_dial.py         # 模式轉盤邏輯 ✅
+│   │   └── loader.py            # 配置載入器 ✅
+│   ├── configs/         # 配置檔案
+│   │   └── mode_dial.default.json  # 預設轉盤配置
+│   ├── schema/          # JSON Schema 驗證
+│   │   └── mode_dial.schema.json   # 配置檔案結構定義
+│   ├── simulator.py     # 雙轉盤UI模擬器 ✅
+│   └── validate_config.py  # 配置驗證工具 ✅
 ├── systemControl/        # 🎯 系統控制中樞 (重構中)
 │   ├── hardware/        # 🔄 硬體抽象層 (階段2)
 │   │   ├── gpio_controller.py   # GPIO統一管理
@@ -72,12 +81,14 @@ python-project/
 │   │   ├── display_controller.py# 雙螢幕控制
 │   │   └── camera_interface.py  # 相機硬體介面
 │   ├── settings/        # 系統設定核心 ✅
-│   │   ├── camera_settings.py   # 相機參數設定
-│   │   ├── display_settings.py  # 螢幕亮度設定
-│   │   ├── dial_settings.py     # 轉盤行為設定
-│   │   ├── film_settings.py     # 🔄 軟片模擬設定 (階段3)
-│   │   ├── power_settings.py    # 電源管理設定
-│   │   └── storage_settings.py  # 儲存裝置設定
+│   │   ├── camera_settings.py   # 相機參數設定 ✅
+│   │   ├── display_settings.py  # 螢幕亮度設定 ✅
+│   │   ├── dial_settings.py     # 轉盤行為設定 ✅
+│   │   ├── film_settings.py     # 軟片模擬設定 ✅
+│   │   ├── power_settings.py    # 電源管理設定 ✅
+│   │   └── storage_settings.py  # 儲存裝置設定 ✅
+│   ├── configs/         # 設定檔案
+│   │   └── camera_settings.json  # 相機預設設定
 │   ├── profiles/        # 🔄 統一配置管理 (階段1)
 │   │   ├── dial_configs/        # 從stateMachineControl遷移
 │   │   ├── camera_profiles/     # 相機設定檔案
@@ -100,8 +111,8 @@ python-project/
 | `analogGauge/` | ✅ 完成 | 100% | RD-1風格錶盤 |
 | `mainCamera/filter/` | ✅ 完成 | 100% | 11種Fujifilm軟片效果 |
 | `mainCamera/colorCorrection/` | ✅ 完成 | 100% | 色彩校正系統 |
-| `stateMachineControl/` | ✅ 重構完成 | 95% | 純狀態機邏輯，配置已分離 |
-| `systemControl/settings/` | ✅ 完成 | 90% | 基礎設定系統 |
+| `stateMachineControl/` | ✅ 完成 | 100% | 純狀態機邏輯，含UI模擬器 |
+| `systemControl/settings/` | ✅ 完成 | 100% | 基礎設定系統，含軟片模擬 |
 | `systemControl/hardware/` | 🔄 開發中 | 0% | 硬體抽象層 |
 | `systemControl/profiles/` | 🔄 開發中 | 0% | 統一配置管理 |
 | `systemControl/integration/` | 🔄 開發中 | 0% | 模組整合層 |  
@@ -176,6 +187,24 @@ python-project/
 - **版本控制**：配置檔案版本化和遷移
 - **動態切換**：運行時配置熱切換
 - **分享機制**：配置檔案匯入/匯出
+
+### 🧪 開發與測試工具
+
+#### stateMachineControl/simulator.py - 雙轉盤UI模擬器
+- **功能**：視覺化測試狀態機邏輯，無需硬體即可驗證轉盤操作
+- **控制**：
+  - 左轉盤：模式選擇（◀▶ 或 A/D 鍵）
+  - 右轉盤：數值調整（◀▶ 或 ←/→ 鍵）+ 按壓/長按（Space/L 鍵）
+- **顯示**：即時狀態、詳細資訊樹、操作日誌、配置匯出
+- **使用方式**：
+  ```bash
+  cd stateMachineControl
+  python simulator.py
+  ```
+
+**注意**：此模擬器專注於狀態機邏輯測試，僅包含雙轉盤操作。其他硬體控制（五向搖桿、快門鍵等）將在 systemControl 的硬體抽象層中實現。
+
+---
 
 ### TODO : 
 因應閃燈閃爍時機未知，所以可否使用錄影(多frame)方法，用AI挑出最合適的照片
