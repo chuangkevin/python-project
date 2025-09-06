@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "dialOrder": [
-    "shutter", "iso", "ev", "wb", "film", "flash", "metering", "self_timer", "af_mode", "display", "menu"
+    "shutter", "iso", "ev", "wb", "film", "flash", "metering", "self_timer", "af_mode", "manual_focus", "display", "menu"
   ],
   "ui": {
     "icons": {
@@ -14,6 +14,7 @@
       "metering": "icon_metering",
       "self_timer": "icon_timer",
       "af_mode": "icon_af",
+      "manual_focus": "icon_mf",
       "display": "icon_display",
       "menu": "icon_menu"
     }
@@ -93,8 +94,8 @@
           "id": "wb_whitecard",
           "label": "WB：白卡測光",
           "type": "action",
-          "hint": "長按右轉盤→擷取中心區塊計算增益",
-          "events": { "rotate": "noop", "press": "confirm", "longPress": "custom" }
+          "hint": "按下快門→擷取中心區塊計算增益",
+          "events": { "rotate": "noop", "press": "confirm", "longPress": "noop" }
         }
       ]
     },
@@ -104,9 +105,47 @@
       "label": "軟片模擬",
       "type": "enum",
       "enum": [
-        { "id": "classic_chrome", "label": "Classic Chrome", "bindings": { "pipeline": "filmSim", "value": "classic_chrome" } },
-        { "id": "kodak_400",      "label": "Kodak 400",      "bindings": { "pipeline": "filmSim", "value": "kodak_400" } },
-        { "id": "acros",          "label": "ACROS",          "bindings": { "pipeline": "filmSim", "value": "acros" } }
+        { "id": "PROVIA", "label": "Provia", "bindings": { "pipeline": "filmSim", "value": "PROVIA" } },
+        { "id": "VELVIA", "label": "Velvia", "bindings": { "pipeline": "filmSim", "value": "VELVIA" } },
+        { "id": "ASTIA", "label": "Astia", "bindings": { "pipeline": "filmSim", "value": "ASTIA" } },
+        { "id": "CLASSIC_CHROME", "label": "Classic Chrome", "bindings": { "pipeline": "filmSim", "value": "CLASSIC_CHROME" } },
+        { "id": "PRO_NEG_HI", "label": "Pro Neg Hi", "bindings": { "pipeline": "filmSim", "value": "PRO_NEG_HI" } },
+        { "id": "PRO_NEG_STD", "label": "Pro Neg Std", "bindings": { "pipeline": "filmSim", "value": "PRO_NEG_STD" } },
+        { "id": "CLASSIC_NEG", "label": "Classic Neg", "bindings": { "pipeline": "filmSim", "value": "CLASSIC_NEG" } },
+        { "id": "ETERNA", "label": "Eterna", "bindings": { "pipeline": "filmSim", "value": "ETERNA" } },
+        { "id": "ACROS", "label": "Acros", "bindings": { "pipeline": "filmSim", "value": "ACROS" } },
+        { "id": "MONO_CHROME", "label": "Monochrome", "bindings": { "pipeline": "filmSim", "value": "MONO_CHROME" } },
+        { "id": "KODACHROME_64", "label": "Kodachrome 64", "bindings": { "pipeline": "filmSim", "value": "KODACHROME_64" } },
+        { "id": "KODACHROME_25", "label": "Kodachrome 25", "bindings": { "pipeline": "filmSim", "value": "KODACHROME_25" } },
+        { "id": "KODAK_PORTRA_400", "label": "Portra 400", "bindings": { "pipeline": "filmSim", "value": "KODAK_PORTRA_400" } },
+        { "id": "KODAK_PORTRA_160", "label": "Portra 160", "bindings": { "pipeline": "filmSim", "value": "KODAK_PORTRA_160" } },
+        { "id": "KODAK_PORTRA_800", "label": "Portra 800", "bindings": { "pipeline": "filmSim", "value": "KODAK_PORTRA_800" } },
+        { "id": "KODAK_GOLD_200", "label": "Gold 200", "bindings": { "pipeline": "filmSim", "value": "KODAK_GOLD_200" } },
+        { "id": "KODAK_ULTRAMAX_400", "label": "Ultramax 400", "bindings": { "pipeline": "filmSim", "value": "KODAK_ULTRAMAX_400" } },
+        { "id": "KODAK_EKTAR_100", "label": "Ektar 100", "bindings": { "pipeline": "filmSim", "value": "KODAK_EKTAR_100" } },
+        { "id": "KODAK_TRI_X_400", "label": "Tri-X 400", "bindings": { "pipeline": "filmSim", "value": "KODAK_TRI_X_400" } },
+        { "id": "KODAK_TMAX_100", "label": "T-Max 100", "bindings": { "pipeline": "filmSim", "value": "KODAK_TMAX_100" } },
+        { "id": "KODAK_TMAX_3200", "label": "T-Max 3200", "bindings": { "pipeline": "filmSim", "value": "KODAK_TMAX_3200" } },
+        { "id": "FUJICOLOR_C200", "label": "C200", "bindings": { "pipeline": "filmSim", "value": "FUJICOLOR_C200" } },
+        { "id": "FUJICOLOR_SUPERIA_400", "label": "Superia 400", "bindings": { "pipeline": "filmSim", "value": "FUJICOLOR_SUPERIA_400" } },
+        { "id": "FUJICOLOR_SUPERIA_1600", "label": "Superia 1600", "bindings": { "pipeline": "filmSim", "value": "FUJICOLOR_SUPERIA_1600" } },
+        { "id": "FUJICOLOR_NATURA_1600", "label": "Natura 1600", "bindings": { "pipeline": "filmSim", "value": "FUJICOLOR_NATURA_1600" } },
+        { "id": "FUJICOLOR_REALA_100", "label": "Reala 100", "bindings": { "pipeline": "filmSim", "value": "FUJICOLOR_REALA_100" } },
+        { "id": "REALA_ACE", "label": "Reala Ace", "bindings": { "pipeline": "filmSim", "value": "REALA_ACE" } },
+        { "id": "CINESTILL_800T", "label": "CineStill 800T", "bindings": { "pipeline": "filmSim", "value": "CINESTILL_800T" } },
+        { "id": "CINESTILL_400D", "label": "CineStill 400D", "bindings": { "pipeline": "filmSim", "value": "CINESTILL_400D" } },
+        { "id": "KODAK_VISION3_250D", "label": "Vision3 250D", "bindings": { "pipeline": "filmSim", "value": "KODAK_VISION3_250D" } },
+        { "id": "KODAK_VISION3_500T", "label": "Vision3 500T", "bindings": { "pipeline": "filmSim", "value": "KODAK_VISION3_500T" } },
+        { "id": "VINTAGE_KODACHROME", "label": "Vintage Kodachrome", "bindings": { "pipeline": "filmSim", "value": "VINTAGE_KODACHROME" } },
+        { "id": "NOSTALGIC_NEGATIVE", "label": "Nostalgic Negative", "bindings": { "pipeline": "filmSim", "value": "NOSTALGIC_NEGATIVE" } },
+        { "id": "SUMMER_1960", "label": "Summer 1960", "bindings": { "pipeline": "filmSim", "value": "SUMMER_1960" } },
+        { "id": "CALIFORNIA_SUMMER", "label": "California Summer", "bindings": { "pipeline": "filmSim", "value": "CALIFORNIA_SUMMER" } },
+        { "id": "PACIFIC_BLUES", "label": "Pacific Blues", "bindings": { "pipeline": "filmSim", "value": "PACIFIC_BLUES" } },
+        { "id": "VINTAGE_BRONZE", "label": "Vintage Bronze", "bindings": { "pipeline": "filmSim", "value": "VINTAGE_BRONZE" } },
+        { "id": "REDSCALE", "label": "Redscale", "bindings": { "pipeline": "filmSim", "value": "REDSCALE" } },
+        { "id": "CROSS_PROCESS", "label": "Cross Process", "bindings": { "pipeline": "filmSim", "value": "CROSS_PROCESS" } },
+        { "id": "BLEACH_BYPASS", "label": "Bleach Bypass", "bindings": { "pipeline": "filmSim", "value": "BLEACH_BYPASS" } },
+        { "id": "INFRARED_BW", "label": "Infrared Bw", "bindings": { "pipeline": "filmSim", "value": "INFRARED_BW" } }
       ],
       "events": { "rotate": "next", "press": "confirm", "longPress": "noop" }
     },
@@ -156,6 +195,16 @@
         { "id": "mf",   "label": "MF",   "bindings": { "control": "AfMode", "value": "manual" } }
       ],
       "events": { "rotate": "next", "press": "confirm", "longPress": "noop" }
+    },
+
+    {
+      "id": "manual_focus",
+      "label": "手動對焦",
+      "type": "range",
+      "condition": { "control": "AfMode", "is": "manual" },
+      "hint": "使用對焦轉盤調整對焦距離",
+      "range": { "min": 0.1, "max": 10.0, "step": 0.1, "unit": "m", "display": "{value:.1f}m", "bindings": { "control": "FocusDistance" } },
+      "events": { "rotate": "inc", "press": "noop", "longPress": "noop" }
     },
 
     {

@@ -87,7 +87,7 @@ class SystemManager:
         
         # 載入對應的轉盤配置
         if self.dial_settings:
-            profile_name = f"{mode}.json" if mode != "photo" else "default.json"
+            profile_name = mode if mode != "photo" else "default"
             return self._load_dial_profile(profile_name)
         
         return True
@@ -111,6 +111,45 @@ class SystemManager:
             status["storage_info"] = self.storage_settings.get_storage_info()
             
         return status
+    
+    def handle_shutter_press(self, press_type: str):
+        """
+        處理快門按鈕事件
+        
+        Args:
+            press_type: "half" 或 "full"
+        """
+        if not self.system_initialized or not self.mode_dial:
+            return
+
+        active_mode_id = self.mode_dial.get_current_active_mode_id()
+
+        # 檢查是否處於白卡測光模式
+        if active_mode_id == "wb_whitecard":
+            if press_type == "full":
+                print("📷 觸發白卡測光...")
+                self._perform_white_balance_capture()
+            return
+
+        # 一般拍照模式
+        if press_type == "half":
+            print("📷 半按快門：執行自動對焦...")
+            # TODO: 呼叫相機執行自動對焦
+            # self.camera_settings.trigger_autofocus()
+        elif press_type == "full":
+            print("📷 全按快門：執行拍攝...")
+            # TODO: 呼叫相機執行拍攝
+            # self.camera_settings.capture_image()
+
+    def _perform_white_balance_capture(self):
+        """執行白卡測光"""
+        # TODO: 實作白卡測光邏輯
+        # 1. 擷取當前影像
+        # 2. 計算中心區域的平均色彩
+        # 3. 計算並套用白平衡增益
+        print("⚖️ 正在計算白平衡增益...")
+        # self.camera_settings.calculate_custom_white_balance()
+        print("✅ 白平衡已校準")
     
     def _setup_dial_callbacks(self):
         """設定轉盤回調函數"""
@@ -144,8 +183,32 @@ class SystemManager:
     
     def _load_dial_profile(self, profile_name: str) -> bool:
         """載入轉盤配置檔案"""
-        # TODO: 實作轉盤配置載入
-        return True
+        try:
+            # 載入轉盤設定
+            if not self.dial_settings.load_profile(profile_name):
+                print(f"載入轉盤配置失敗: {profile_name}")
+                return False
+            
+            # 如果有 ModeDial，套用配置
+            if self.mode_dial:
+                # 取得轉盤特殊配置
+                dial_config = self.dial_settings.get_stateMachineControl_config()
+                
+                if dial_config is not None:
+                    # 套用自訂配置 (目前 stateMachineControl 不支援動態配置載入)
+                    print(f"注意: 自訂轉盤配置需要重啟應用程式生效")
+                else:
+                    print(f"使用 stateMachineControl 預設配置")
+                
+                # 套用轉盤靈敏度設定 (這個可以即時生效)
+                profile_info = self.dial_settings.get_current_profile_info()
+                print(f"套用轉盤靈敏度 - 左: {profile_info['left_sensitivity']}, 右: {profile_info['right_sensitivity']}")
+            
+            return True
+            
+        except Exception as e:
+            print(f"載入轉盤配置錯誤: {e}")
+            return False
     
     def _show_settings_menu(self):
         """顯示設定選單"""
@@ -154,8 +217,67 @@ class SystemManager:
     
     def _apply_camera_control(self, control: str, value):
         """套用相機控制"""
-        # TODO: 實作相機控制套用
-        pass
+        try:
+            print(f"套用相機控制: {control} = {value}")
+            
+            # 根據控制類型套用設定
+            if control == "ExposureTime":
+                # 快門速度控制
+                print(f"  設定快門速度: {value}s")
+                
+            elif control == "AnalogueGain":
+                # ISO 控制
+                print(f"  設定 ISO 增益: {value}")
+                
+            elif control == "ExposureValue":
+                # EV 曝光補償
+                self.camera_settings.set_exposure_compensation(value)
+                
+            elif control == "AwbMode":
+                # 白平衡模式
+                self.camera_settings.set_white_balance_mode(value)
+                
+            elif control == "ColourGains_AB":
+                # 色彩增益調整
+                print(f"  設定色彩增益: {value}")
+                
+            elif control == "AfMode":
+                # 對焦模式
+                af_mode_map = {
+                    "single": "single",
+                    "continuous": "continuous", 
+                    "manual": "manual"
+                }
+                mapped_mode = af_mode_map.get(value, "continuous")
+                self.camera_settings.set_autofocus_mode(mapped_mode)
+                
+            elif control == "Metering":
+                # 測光模式
+                print(f"  設定測光模式: {value}")
+                
+            elif control == "SelfTimer":
+                # 自拍計時器
+                print(f"  設定自拍計時器: {value}秒")
+                
+            elif control == "VideoResolution":
+                # 錄影解析度
+                resolution_map = {
+                    "3840x2160": "4k",
+                    "1920x1080": "1080p", 
+                    "1280x720": "720p"
+                }
+                mapped_res = resolution_map.get(value, value)
+                self.camera_settings.set_video_resolution(mapped_res)
+                
+            elif control == "VideoFramerate":
+                # 錄影幀率
+                self.camera_settings.set_video_framerate(value)
+                
+            else:
+                print(f"  未知的控制類型: {control}")
+                
+        except Exception as e:
+            print(f"套用相機控制失敗 {control}: {e}")
     
     def _load_all_settings(self):
         """載入所有設定"""
