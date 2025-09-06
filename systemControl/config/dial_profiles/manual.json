@@ -1,58 +1,164 @@
 {
   "profile_info": {
     "name": "manual",
-    "description": "手動模式轉盤配置 - 完全手動控制",
+    "description": "manual 轉盤配置",
     "version": "1.0.0",
-    "created_date": "2024-01-01", 
-    "author": "Camera Project Team"
+    "created_date": "2024-01-01",
+    "author": "User"
   },
   "dial_behavior": {
-    "left_sensitivity": 0.5,
-    "right_sensitivity": 1.5,
+    "left_sensitivity": 1.3,
+    "right_sensitivity": 0.8,
     "direction_reversed": false,
     "long_press_threshold": 1000
-  },
-  "mode_configuration": {
-    "version": "1.0.0",
-    "dialOrder": [
-      "shutter_speed", "aperture", "iso_manual", "focus_manual", "wb_manual", "exposure_comp", "flash_manual", "display", "menu"
-    ],
-    "modes": [
-      {
-        "id": "shutter_speed",
-        "label": "快門速度",
-        "type": "enum", 
-        "enum": [
-          {"id": "1/2000", "label": "1/2000", "value": 0.0005, "bindings": {"control": "ExposureTime"}},
-          {"id": "1/1000", "label": "1/1000", "value": 0.001, "bindings": {"control": "ExposureTime"}},
-          {"id": "1/500", "label": "1/500", "value": 0.002, "bindings": {"control": "ExposureTime"}},
-          {"id": "1/250", "label": "1/250", "value": 0.004, "bindings": {"control": "ExposureTime"}},
-          {"id": "1/125", "label": "1/125", "value": 0.008, "bindings": {"control": "ExposureTime"}},
-          {"id": "1/60", "label": "1/60", "value": 0.016, "bindings": {"control": "ExposureTime"}},
-          {"id": "1/30", "label": "1/30", "value": 0.033, "bindings": {"control": "ExposureTime"}}
-        ],
-        "events": {"rotate": "next", "press": "confirm", "longPress": "auto"}
-      },
-      {
-        "id": "iso_manual",
-        "label": "ISO 感光度", 
-        "type": "enum",
-        "enum": [
-          {"id": "50", "label": "ISO 50", "bindings": {"control": "AnalogueGain", "value": 1.0}},
-          {"id": "100", "label": "ISO 100", "bindings": {"control": "AnalogueGain", "value": 2.0}},
-          {"id": "200", "label": "ISO 200", "bindings": {"control": "AnalogueGain", "value": 4.0}},
-          {"id": "400", "label": "ISO 400", "bindings": {"control": "AnalogueGain", "value": 8.0}},
-          {"id": "800", "label": "ISO 800", "bindings": {"control": "AnalogueGain", "value": 16.0}},
-          {"id": "1600", "label": "ISO 1600", "bindings": {"control": "AnalogueGain", "value": 32.0}}
-        ],
-        "events": {"rotate": "next", "press": "confirm", "longPress": "auto"}
-      }
-    ]
   },
   "shortcuts": {
     "reset_exposure": "double_press_exposure_comp",
     "toggle_focus_aid": "long_press_focus",
     "histogram_toggle": "double_press_display"
   },
-  "notes": "手動模式提供完全的曝光控制，適合專業攝影師使用"
+  "mode_configuration": {
+    "version": "1.0.0",
+    "dialOrder": [
+      "shutter_speed",
+      "aperture",
+      "iso_manual",
+      "focus_manual",
+      "wb_manual",
+      "exposure_comp",
+      "flash_manual",
+      "display",
+      "menu"
+    ],
+    "modes": [
+      {
+        "id": "shutter_speed",
+        "label": "快門速度",
+        "type": "enum",
+        "enum": [
+          {
+            "id": "1/2000",
+            "label": "1/2000",
+            "value": 0.0005,
+            "bindings": {
+              "control": "ExposureTime"
+            }
+          },
+          {
+            "id": "1/1000",
+            "label": "1/1000",
+            "value": 0.001,
+            "bindings": {
+              "control": "ExposureTime"
+            }
+          },
+          {
+            "id": "1/500",
+            "label": "1/500",
+            "value": 0.002,
+            "bindings": {
+              "control": "ExposureTime"
+            }
+          },
+          {
+            "id": "1/250",
+            "label": "1/250",
+            "value": 0.004,
+            "bindings": {
+              "control": "ExposureTime"
+            }
+          },
+          {
+            "id": "1/125",
+            "label": "1/125",
+            "value": 0.008,
+            "bindings": {
+              "control": "ExposureTime"
+            }
+          },
+          {
+            "id": "1/60",
+            "label": "1/60",
+            "value": 0.016,
+            "bindings": {
+              "control": "ExposureTime"
+            }
+          },
+          {
+            "id": "1/30",
+            "label": "1/30",
+            "value": 0.033,
+            "bindings": {
+              "control": "ExposureTime"
+            }
+          }
+        ],
+        "events": {
+          "rotate": "next",
+          "press": "confirm",
+          "longPress": "auto"
+        }
+      },
+      {
+        "id": "iso_manual",
+        "label": "ISO 感光度",
+        "type": "enum",
+        "enum": [
+          {
+            "id": "50",
+            "label": "ISO 50",
+            "bindings": {
+              "control": "AnalogueGain",
+              "value": 1.0
+            }
+          },
+          {
+            "id": "100",
+            "label": "ISO 100",
+            "bindings": {
+              "control": "AnalogueGain",
+              "value": 2.0
+            }
+          },
+          {
+            "id": "200",
+            "label": "ISO 200",
+            "bindings": {
+              "control": "AnalogueGain",
+              "value": 4.0
+            }
+          },
+          {
+            "id": "400",
+            "label": "ISO 400",
+            "bindings": {
+              "control": "AnalogueGain",
+              "value": 8.0
+            }
+          },
+          {
+            "id": "800",
+            "label": "ISO 800",
+            "bindings": {
+              "control": "AnalogueGain",
+              "value": 16.0
+            }
+          },
+          {
+            "id": "1600",
+            "label": "ISO 1600",
+            "bindings": {
+              "control": "AnalogueGain",
+              "value": 32.0
+            }
+          }
+        ],
+        "events": {
+          "rotate": "next",
+          "press": "confirm",
+          "longPress": "auto"
+        }
+      }
+    ]
+  }
 }

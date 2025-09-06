@@ -1,28 +1,37 @@
 {
   "profile_info": {
     "name": "default",
-    "description": "預設拍照模式轉盤配置", 
+    "description": "default 轉盤配置",
     "version": "1.0.0",
     "created_date": "2024-01-01",
-    "author": "Camera Project Team"
+    "author": "User"
   },
   "dial_behavior": {
-    "left_sensitivity": 1.0,
-    "right_sensitivity": 1.0,
+    "left_sensitivity": 1.2,
+    "right_sensitivity": 0.9,
     "direction_reversed": false,
     "long_press_threshold": 800
-  },
-  "mode_configuration": {
-    "version": "1.0.0",
-    "dialOrder": [
-      "shutter", "iso", "ev", "wb", "film", "flash", "metering", "self_timer", "af_mode", "display", "menu"
-    ],
-    "modes": "inherit_from_stateMachineControl"
   },
   "shortcuts": {
     "quick_wb": "long_press_wb",
     "quick_iso": "double_press_iso",
     "reset_ev": "long_press_ev"
   },
-  "notes": "此配置檔案繼承 stateMachineControl 的 mode_dial.default.json，只覆寫轉盤行為設定"
+  "mode_configuration": {
+    "version": "1.0.0",
+    "dialOrder": [
+      "shutter",
+      "iso",
+      "ev",
+      "wb",
+      "film",
+      "flash",
+      "metering",
+      "self_timer",
+      "af_mode",
+      "display",
+      "menu"
+    ],
+    "modes": "inherit_from_stateMachineControl"
+  }
 }
