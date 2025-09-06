@@ -103,18 +103,34 @@ class ModeDial:
             self.current_values[mode_id] = False
     
     def get_current_mode(self) -> Optional[Dict[str, Any]]:
-        """取得當前模式"""
+        """取得當前模式（如果是群組模式，返回當前活躍的子模式）"""
         if not self.dial_order or self.current_mode_index >= len(self.dial_order):
             return None
         
         mode_id = self.dial_order[self.current_mode_index]
-        return self.config_loader.get_mode_by_id(mode_id)
+        mode = self.config_loader.get_mode_by_id(mode_id)
+        
+        # 如果是群組模式，返回當前活躍的子模式
+        if mode and mode.get("type") == "group":
+            group_modes = mode.get("group", [])
+            current_sub_index = self.current_values.get(mode_id, 0)
+            if 0 <= current_sub_index < len(group_modes):
+                return group_modes[current_sub_index]
+        
+        return mode
     
     def get_current_mode_id(self) -> str:
-        """取得當前模式 ID"""
+        """取得當前模式 ID（主模式的ID，不是子模式）"""
         if not self.dial_order or self.current_mode_index >= len(self.dial_order):
             return ""
         return self.dial_order[self.current_mode_index]
+    
+    def get_current_active_mode_id(self) -> str:
+        """取得當前活躍模式的ID（如果是群組模式，返回子模式ID）"""
+        current_mode = self.get_current_mode()
+        if current_mode:
+            return current_mode.get("id", "")
+        return ""
     
     def rotate_left_dial(self, direction: int):
         """
@@ -139,25 +155,45 @@ class ModeDial:
         Args:
             direction: 1 為順時針，-1 為逆時針
         """
+        # 獲取主模式ID用於群組索引
+        main_mode_id = self.get_current_mode_id()
+        if not main_mode_id:
+            return
+            
+        # 獲取當前活躍的模式（可能是子模式）
         current_mode = self.get_current_mode()
         if not current_mode:
             return
         
         mode_id = current_mode.get("id")
-        mode_type = current_mode.get("type")
         events = current_mode.get("events", {})
         rotate_action = events.get("rotate", "noop")
         
         if rotate_action == "noop":
             return
         
-        old_value = self.current_values.get(mode_id)
-        new_value = self._calculate_new_value(current_mode, direction, rotate_action)
+        # 檢查主模式是否為群組
+        main_mode = self.config_loader.get_mode_by_id(main_mode_id)
+        is_group_mode = main_mode and main_mode.get("type") == "group"
         
-        if new_value != old_value:
-            self.current_values[mode_id] = new_value
-            self._trigger_value_changed(mode_id, old_value, new_value)
-            self._trigger_bindings(current_mode)
+        if is_group_mode:
+            # 群組模式：調整當前子模式的值，但群組索引儲存在主模式ID下
+            old_value = self.current_values.get(mode_id)
+            new_value = self._calculate_new_value(current_mode, direction, rotate_action)
+            
+            if new_value != old_value:
+                self.current_values[mode_id] = new_value
+                self._trigger_value_changed(mode_id, old_value, new_value)
+                self._trigger_bindings(current_mode)
+        else:
+            # 一般模式：調整主模式的值
+            old_value = self.current_values.get(mode_id)
+            new_value = self._calculate_new_value(current_mode, direction, rotate_action)
+            
+            if new_value != old_value:
+                self.current_values[mode_id] = new_value
+                self._trigger_value_changed(mode_id, old_value, new_value)
+                self._trigger_bindings(current_mode)
     
     def _calculate_new_value(self, mode: Dict[str, Any], direction: int, action: str) -> Any:
         """計算新值"""
@@ -197,6 +233,15 @@ class ModeDial:
                 delta = 1 if direction > 0 else -1
                 new_index = (current_value + delta) % len(group_modes)
                 return new_index
+        
+        elif mode_type == "toggle":
+            # toggle 類型在旋轉時切換狀態
+            if action in ["next", "prev", "toggle"]:
+                return not current_value
+        
+        elif mode_type == "action":
+            # action 類型旋轉時不改變值
+            return current_value
         
         return current_value
     
@@ -340,6 +385,9 @@ class ModeDial:
             group_modes = mode.get("group", [])
             if isinstance(value, int) and 0 <= value < len(group_modes):
                 return group_modes[value].get("label", str(value))
+        
+        elif mode_type == "action":
+            return mode.get("label", "動作")
         
         return str(value)
     
