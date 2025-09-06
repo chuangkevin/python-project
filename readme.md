@@ -42,18 +42,46 @@
 ---
 
 ## 📁 專案架構
+```
 python-project/
-├── analogGauge/ # RD-1 風格指針錶盤模組
-├── mainCamera/ # 主相機系統
-│ ├── filter/ # 軟片模擬濾鏡 (Classic Chrome, Kodak, Fuji…)
-│ └── colorCorrection/ # Pi Camera 色彩校正與 Profile
-└── systemMonitor/ # 使用analogGauge製作的Windows系統儀表
+├── analogGauge/          # RD-1 風格指針錶盤模組
+├── mainCamera/           # 主相機系統
+│   ├── filter/           # 軟片模擬濾鏡 (Classic Chrome, Kodak, Fuji…)
+│   ├── colorCorrection/  # Pi Camera 色彩校正與 Profile
+│   ├── ui/              # 主界面與 Live-View
+│   └── core/            # 核心相機功能
+├── stateMachineControl/  # 雙轉盤控制邏輯 ✅
+│   ├── src/             # 狀態機核心實作
+│   ├── configs/         # 轉盤配置檔案 (JSON)
+│   ├── schema/          # 配置驗證 Schema
+│   └── simulator.py     # 雙轉盤模擬器 (開發工具)
+├── systemControl/        # 系統控制與設定模組 🆕
+│   ├── settings/        # 系統設定核心
+│   │   ├── camera_settings.py    # 相機參數設定
+│   │   ├── display_settings.py   # 螢幕亮度/對比設定
+│   │   ├── dial_settings.py      # 雙轉盤行為設定
+│   │   ├── power_settings.py     # 電源管理設定
+│   │   └── storage_settings.py   # 儲存裝置設定
+│   ├── ui/              # 設定界面
+│   │   ├── settings_menu.py      # 主設定選單
+│   │   └── dial_config_ui.py     # 轉盤配置界面
+│   ├── config/          # 系統配置檔案
+│   │   ├── system.json           # 系統全域配置
+│   │   └── dial_profiles/        # 轉盤設定檔案夾
+│   │       ├── default.json      # 預設轉盤配置
+│   │       ├── video.json        # 錄影模式配置
+│   │       └── manual.json       # 手動模式配置
+│   └── core/            # 系統控制核心
+│       └── system_manager.py     # 系統管理器
+└── systemMonitor/        # 使用 analogGauge 製作的 Windows 系統儀表
+```
 
-
-實際檔案（目前進度）：
-- `filter/` → 軟片模擬、網頁測試介面  
-- `colorCorrection/` → 色彩校正與 profile 儲存  
-- `uploads/`、`outputs/` → 測試影像資料夾  
+### 實際檔案（目前進度）：
+- ✅ `stateMachineControl/` → 雙轉盤邏輯完成，白平衡問題已修正
+- ✅ `filter/` → 軟片模擬、網頁測試介面  
+- ✅ `colorCorrection/` → 色彩校正與 profile 儲存  
+- ✅ `uploads/`、`outputs/` → 測試影像資料夾
+- 🆕 `systemControl/` → 系統控制模組 (準備建立)  
 
 ---
 
@@ -87,11 +115,28 @@ python-project/
 ---
 
 ## 📝 開發說明
-- **模組化設計**：相機、濾鏡、色彩校正、指針 UI、系統監控皆獨立  
-- **白平衡模組**：支援場景切換、A-B / G-M 微調、自定義白卡  
-- **雙轉盤邏輯**：左轉盤切模式，右轉盤控制數值  
-- **電源管理**：待機 / 關機模式已規劃（需搭配 UPS 模組）  
-- **擴展性**：未來可加入更多濾鏡與 UI 指針樣式  
+
+### 模組設計理念
+- **模組化架構**：相機、濾鏡、色彩校正、指針 UI、系統控制皆獨立
+- **分離關注點**：狀態機邏輯、系統設定、UI 界面各司其職
+- **可配置性**：支援多種轉盤配置檔案，適應不同拍攝場景
+
+### 核心功能模組
+- **stateMachineControl**：純粹的雙轉盤邏輯，無 UI 依賴
+- **systemControl**：統一管理系統設定，包括轉盤行為配置
+- **白平衡系統**：支援場景切換、A-B/G-M 微調、自定義白卡測光
+- **電源管理**：待機/關機模式已規劃（需搭配 UPS 模組）
+
+### 雙轉盤控制邏輯
+- **左轉盤**：模式選擇（快門、ISO、EV、白平衡、軟片模擬等）
+- **右轉盤**：當前模式數值調整，支援按壓確認/切換
+- **群組模式**：白平衡等複雜設定支援子選單導航
+- **配置切換**：可在拍照/錄影/手動模式間切換不同轉盤行為
+
+### 擴展性設計
+- **轉盤設定檔**：JSON 格式，支援匯入/匯出/分享
+- **濾鏡系統**：可持續加入新的軟片模擬效果
+- **指針樣式**：analogGauge 支援多種復古錶盤設計
 
 ### TODO : 
 因應閃燈閃爍時機未知，所以可否使用錄影(多frame)方法，用AI挑出最合適的照片
