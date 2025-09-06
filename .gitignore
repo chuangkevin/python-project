@@ -171,3 +171,6 @@ env/
 .venv/
 .env/
 analogGauge/__pycache__
+
+# Gemini CLI directory
+/.claude/
