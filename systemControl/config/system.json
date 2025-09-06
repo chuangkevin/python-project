@@ -1,0 +1,48 @@
+{
+  "version": "1.0.0",
+  "system_info": {
+    "device_name": "RD-1 Style Camera",
+    "hardware_revision": "v1.0",
+    "software_version": "1.0.0"
+  },
+  "default_settings": {
+    "startup_mode": "photo",
+    "dial_profile": "default",
+    "auto_save_enabled": true,
+    "debug_mode": false
+  },
+  "hardware_config": {
+    "main_display": {
+      "driver": "ILI9341",
+      "size": "2.4",
+      "resolution": "240x320",
+      "spi_device": "/dev/spidev0.0"
+    },
+    "sub_display": {
+      "driver": "GC9D01", 
+      "size": "0.71",
+      "resolution": "240x240",
+      "spi_device": "/dev/spidev0.1"
+    },
+    "camera": {
+      "module": "Camera Module 3",
+      "sensor": "IMX708",
+      "max_resolution": "4608x2592",
+      "autofocus": true
+    },
+    "controls": {
+      "left_dial_pins": [17, 18],
+      "right_dial_pins": [19, 20], 
+      "right_dial_button": 21,
+      "shutter_button": [22, 23],
+      "joystick_pins": [24, 25, 26, 27, 28],
+      "power_button": 29
+    }
+  },
+  "paths": {
+    "internal_storage": "/home/pi/camera_data",
+    "external_storage": "/media/usb",
+    "config_backup": "/home/pi/.camera_backup",
+    "log_directory": "/var/log/camera"
+  }
+}

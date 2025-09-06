@@ -1,0 +1,51 @@
+{
+  "profile_info": {
+    "name": "video",
+    "description": "錄影模式轉盤配置",
+    "version": "1.0.0", 
+    "created_date": "2024-01-01",
+    "author": "Camera Project Team"
+  },
+  "dial_behavior": {
+    "left_sensitivity": 1.2,
+    "right_sensitivity": 0.8,
+    "direction_reversed": false,
+    "long_press_threshold": 600
+  },
+  "mode_configuration": {
+    "version": "1.0.0",
+    "dialOrder": [
+      "resolution", "framerate", "bitrate", "wb", "exposure_mode", "focus_mode", "stabilization", "audio", "display", "menu"
+    ],
+    "modes": [
+      {
+        "id": "resolution",
+        "label": "解析度",
+        "type": "enum",
+        "enum": [
+          {"id": "4k", "label": "4K", "bindings": {"control": "VideoResolution", "value": "3840x2160"}},
+          {"id": "1080p", "label": "1080p", "bindings": {"control": "VideoResolution", "value": "1920x1080"}},
+          {"id": "720p", "label": "720p", "bindings": {"control": "VideoResolution", "value": "1280x720"}}
+        ],
+        "events": {"rotate": "next", "press": "confirm", "longPress": "noop"}
+      },
+      {
+        "id": "framerate", 
+        "label": "畫面更新率",
+        "type": "enum",
+        "enum": [
+          {"id": "24", "label": "24 fps", "bindings": {"control": "VideoFramerate", "value": 24}},
+          {"id": "30", "label": "30 fps", "bindings": {"control": "VideoFramerate", "value": 30}},
+          {"id": "60", "label": "60 fps", "bindings": {"control": "VideoFramerate", "value": 60}}
+        ],
+        "events": {"rotate": "next", "press": "confirm", "longPress": "noop"}
+      }
+    ]
+  },
+  "shortcuts": {
+    "start_recording": "shutter_press",
+    "focus_lock": "long_press_focus",
+    "exposure_lock": "long_press_exposure"
+  },
+  "notes": "錄影模式專用配置，優化錄影相關參數的控制"
+}
