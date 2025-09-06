@@ -41,47 +41,70 @@
 
 ---
 
-## 📁 專案架構
+## 📁 專案架構 (重構版本)
+
+### 🎯 架構重構進度追蹤
+- [ ] **階段1**: 配置檔案統一化 (configs → profiles)
+- [ ] **階段2**: 硬體抽象層建立
+- [ ] **階段3**: 軟片模擬系統整合  
+- [ ] **階段4**: 模組整合層建立
+- [ ] **階段5**: 完整系統測試
+
 ```
 python-project/
-├── analogGauge/          # RD-1 風格指針錶盤模組
-├── mainCamera/           # 主相機系統
-│   ├── filter/           # 軟片模擬濾鏡 (Classic Chrome, Kodak, Fuji…)
-│   ├── colorCorrection/  # Pi Camera 色彩校正與 Profile
+├── analogGauge/          # RD-1 風格指針錶盤模組 ✅
+├── mainCamera/           # 主相機系統 ✅
+│   ├── filter/           # 軟片模擬濾鏡 (11種Fujifilm效果) ✅
+│   ├── colorCorrection/  # Pi Camera 色彩校正與 Profile ✅
 │   ├── ui/              # 主界面與 Live-View
-│   └── core/            # 核心相機功能
-├── stateMachineControl/  # 雙轉盤控制邏輯 ✅
-│   ├── src/             # 狀態機核心實作
-│   ├── configs/         # 轉盤配置檔案 (JSON)
-│   ├── schema/          # 配置驗證 Schema
-│   └── simulator.py     # 雙轉盤模擬器 (開發工具)
-├── systemControl/        # 系統控制與設定模組 🆕
-│   ├── settings/        # 系統設定核心
-│   │   ├── camera_settings.py    # 相機參數設定
-│   │   ├── display_settings.py   # 螢幕亮度/對比設定
-│   │   ├── dial_settings.py      # 雙轉盤行為設定
-│   │   ├── power_settings.py     # 電源管理設定
-│   │   └── storage_settings.py   # 儲存裝置設定
-│   ├── ui/              # 設定界面
-│   │   ├── settings_menu.py      # 主設定選單
-│   │   └── dial_config_ui.py     # 轉盤配置界面
-│   ├── config/          # 系統配置檔案
-│   │   ├── system.json           # 系統全域配置
-│   │   └── dial_profiles/        # 轉盤設定檔案夾
-│   │       ├── default.json      # 預設轉盤配置
-│   │       ├── video.json        # 錄影模式配置
-│   │       └── manual.json       # 手動模式配置
-│   └── core/            # 系統控制核心
-│       └── system_manager.py     # 系統管理器
-└── systemMonitor/        # 使用 analogGauge 製作的 Windows 系統儀表
+│   ├── core/            # 核心相機功能
+│   └── integration/      # 🔄 與systemControl整合層 (階段4)
+├── stateMachineControl/  # 純狀態機邏輯 ✅ (精簡化)
+│   ├── src/             # 狀態轉換核心邏輯
+│   │   ├── state_machine.py     # 狀態機實作
+│   │   └── mode_dial.py         # 模式轉盤邏輯
+│   └── simulator.py     # 開發測試工具
+├── systemControl/        # 🎯 系統控制中樞 (重構中)
+│   ├── hardware/        # 🔄 硬體抽象層 (階段2)
+│   │   ├── gpio_controller.py   # GPIO統一管理
+│   │   ├── button_handler.py    # 按鈕事件處理
+│   │   ├── encoder_handler.py   # 轉盤編碼器處理
+│   │   ├── display_controller.py# 雙螢幕控制
+│   │   └── camera_interface.py  # 相機硬體介面
+│   ├── settings/        # 系統設定核心 ✅
+│   │   ├── camera_settings.py   # 相機參數設定
+│   │   ├── display_settings.py  # 螢幕亮度設定
+│   │   ├── dial_settings.py     # 轉盤行為設定
+│   │   ├── film_settings.py     # 🔄 軟片模擬設定 (階段3)
+│   │   ├── power_settings.py    # 電源管理設定
+│   │   └── storage_settings.py  # 儲存裝置設定
+│   ├── profiles/        # 🔄 統一配置管理 (階段1)
+│   │   ├── dial_configs/        # 從stateMachineControl遷移
+│   │   ├── camera_profiles/     # 相機設定檔案
+│   │   └── film_profiles/       # 軟片模擬預設
+│   ├── integration/     # 🔄 模組整合層 (階段4)
+│   │   ├── state_machine_bridge.py  # 與stateMachineControl溝通
+│   │   └── camera_bridge.py         # 與mainCamera溝通
+│   ├── ui/              # 設定界面 ✅
+│   │   ├── settings_menu.py     # 主設定選單
+│   │   └── dial_config_ui.py    # 轉盤配置界面
+│   ├── core/            # 系統管理器 ✅
+│   │   └── system_manager.py    # 中央系統管理
+│   └── ui_simulator.py  # 系統測試界面 ✅
+└── systemMonitor/        # Windows 系統儀表 ✅
 ```
 
-### 實際檔案（目前進度）：
-- ✅ `stateMachineControl/` → 雙轉盤邏輯完成，白平衡問題已修正
-- ✅ `filter/` → 軟片模擬、網頁測試介面  
-- ✅ `colorCorrection/` → 色彩校正與 profile 儲存  
-- ✅ `uploads/`、`outputs/` → 測試影像資料夾
-- 🆕 `systemControl/` → 系統控制模組 (準備建立)  
+### 📊 模組狀態與進度
+| 模組 | 狀態 | 功能完成度 | 備註 |
+|------|------|------------|------|
+| `analogGauge/` | ✅ 完成 | 100% | RD-1風格錶盤 |
+| `mainCamera/filter/` | ✅ 完成 | 100% | 11種Fujifilm軟片效果 |
+| `mainCamera/colorCorrection/` | ✅ 完成 | 100% | 色彩校正系統 |
+| `stateMachineControl/` | ✅ 重構完成 | 95% | 純狀態機邏輯，配置已分離 |
+| `systemControl/settings/` | ✅ 完成 | 90% | 基礎設定系統 |
+| `systemControl/hardware/` | 🔄 開發中 | 0% | 硬體抽象層 |
+| `systemControl/profiles/` | 🔄 開發中 | 0% | 統一配置管理 |
+| `systemControl/integration/` | 🔄 開發中 | 0% | 模組整合層 |  
 
 ---
 
@@ -92,9 +115,12 @@ python-project/
 - **副螢幕**：0.71" GC9D01 / GC9A01 圓形 LCD (SPI, 160×160 / 240×240)  
 
 ### 控制元件
-- **五向搖桿**：導航選單  
-- **兩段式快門**：半按 AF，全按拍照  
-- **雙轉盤**：左＝模式選擇，右＝數值調整  
+- **五向搖桿**：導航選單 (含2個擴展鍵)
+- **兩段式快門**：半按 AF，全按拍照 (可自訂功能，如白卡測光)
+- **三轉盤設計**：
+  - 左轉盤：模式選擇
+  - 右轉盤：數值調整
+  - 對焦轉盤：手動對焦(MF)模式下控制對焦環
 - **過片桿**：模擬復古相機操作  
 - **電源鍵**：短按待機、長按安全關機  
 
@@ -116,27 +142,40 @@ python-project/
 
 ## 📝 開發說明
 
-### 模組設計理念
-- **模組化架構**：相機、濾鏡、色彩校正、指針 UI、系統控制皆獨立
-- **分離關注點**：狀態機邏輯、系統設定、UI 界面各司其職
-- **可配置性**：支援多種轉盤配置檔案，適應不同拍攝場景
+### 🔧 重構設計理念
+- **責任分離**：狀態機邏輯 vs 系統控制 vs 硬體抽象
+- **統一配置**：所有配置檔案統一在systemControl/profiles/
+- **硬體抽象**：GPIO/I2C/SPI統一管理，支援硬體切換
+- **事件驅動**：硬體事件→軟體事件，模組間低耦合通信
 
-### 核心功能模組
-- **stateMachineControl**：純粹的雙轉盤邏輯，無 UI 依賴
-- **systemControl**：統一管理系統設定，包括轉盤行為配置
-- **白平衡系統**：支援場景切換、A-B/G-M 微調、自定義白卡測光
-- **電源管理**：待機/關機模式已規劃（需搭配 UPS 模組）
+### 📦 核心模組職責
+#### `stateMachineControl/` - 狀態機邏輯
+- ✅ **純邏輯處理**：狀態轉換、模式切換
+- ✅ **無硬體依賴**：僅處理抽象狀態
+- ✅ **測試友好**：simulator.py獨立測試
 
-### 雙轉盤控制邏輯
-- **左轉盤**：模式選擇（快門、ISO、EV、白平衡、軟片模擬等）
-- **右轉盤**：當前模式數值調整，支援按壓確認/切換
-- **群組模式**：白平衡等複雜設定支援子選單導航
-- **配置切換**：可在拍照/錄影/手動模式間切換不同轉盤行為
+#### `systemControl/` - 系統控制中樞
+- 🔄 **硬體管理**：GPIO、編碼器、按鈕統一控制
+- 🔄 **配置管理**：統一的設定檔案和配置切換
+- ✅ **系統設定**：相機、顯示、電源、儲存設定
+- 🔄 **模組整合**：其他模組的協調和通信
 
-### 擴展性設計
-- **轉盤設定檔**：JSON 格式，支援匯入/匯出/分享
-- **濾鏡系統**：可持續加入新的軟片模擬效果
-- **指針樣式**：analogGauge 支援多種復古錶盤設計
+#### `mainCamera/` - 相機功能
+- ✅ **影像處理**：拍攝、RAW處理、軟片模擬
+- ✅ **色彩校正**：IMX708專用色彩配置
+- 🔄 **系統整合**：與systemControl協同工作
+
+### 🎛️ 控制系統架構
+- **雙轉盤**：左=模式選擇，右=數值調整
+- **五向搖桿**：選單導航和快速設定
+- **兩段快門**：半按對焦，全按拍攝
+- **硬體事件總線**：統一事件處理和分發
+
+### 🔄 配置管理系統
+- **統一配置**：profiles/目錄統一管理所有設定
+- **版本控制**：配置檔案版本化和遷移
+- **動態切換**：運行時配置熱切換
+- **分享機制**：配置檔案匯入/匯出
 
 ### TODO : 
 因應閃燈閃爍時機未知，所以可否使用錄影(多frame)方法，用AI挑出最合適的照片
