@@ -6,6 +6,7 @@ Settings - 系統設定核心模組
 from .camera_settings import CameraSettings
 from .display_settings import DisplaySettings
 from .dial_settings import DialSettings
+from .film_settings import FilmSettings
 from .power_settings import PowerSettings
 from .storage_settings import StorageSettings
 
@@ -13,6 +14,7 @@ __all__ = [
     'CameraSettings',
     'DisplaySettings', 
     'DialSettings',
+    'FilmSettings',
     'PowerSettings',
     'StorageSettings'
 ]
