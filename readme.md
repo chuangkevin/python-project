@@ -41,17 +41,31 @@
 
 ---
 
-## 📁 專案架構 (重構版本)
+## 📁 專案架構 (Python 單體應用)
 
-### 🎯 架構重構進度追蹤
-- [ ] **階段1**: 配置檔案統一化 (configs → profiles) - 待開始
-- [ ] **階段2**: 硬體抽象層建立 - 待開始  
+### 🎯 架構重構進度追蹤 
+- [x] **重大重構**: 從 React+FastAPI 改為 Python 單體應用 - ✅ **已完成**
+  - ✅ 創建 Python tkinter 測試 UI  
+  - ✅ 統一設定管理系統
+  - ✅ 硬體抽象層基礎架構
+  - ✅ 狀態機整合
 - [x] **階段0.5**: 基礎模組完善 - ✅ **已完成**
   - ✅ stateMachineControl 狀態機邏輯完成
   - ✅ systemControl/settings 設定系統完成
-- [ ] **階段3**: 軟片模擬系統整合 - 待開始
-- [ ] **階段4**: 模組整合層建立 - 待開始
-- [ ] **階段5**: 完整系統測試 - 待開始
+  - ✅ 輕量化 Python 主應用程式 (main.py)
+  - ✅ 硬體模擬器整合
+- [ ] **階段1**: UI 設計實現 - 🔄 **進行中**
+  - ⚠️ **當前狀況**: 僅有基本 tkinter 測試 UI，尚未實現真正設計
+  - 🎯 **下一步**: 需用 MCP 工具 (Figma/21st.dev) 重新設計 Python 適用的相機控制界面
+- [ ] **階段2**: 相機模組整合 - 待開始
+- [ ] **階段3**: 硬體 GPIO 整合 - 待開始
+
+### 📋 當前開發狀況 (2025-09-07)
+- ✅ **Python 單體應用架構**: 完成重構，可運行 `python main.py` 啟動 tkinter 測試界面
+- ✅ **硬體模擬器**: 整合完成，支援開發模式測試
+- ✅ **設定系統**: 統一管理相機、顯示、轉盤、軟片等設定
+- ⚠️ **UI 問題**: 目前只有陽春 tkinter 測試界面，與之前 MCP 設計的精美 React 組件差距很大
+- 🎯 **急需**: 重新設計適合 Python 的相機控制界面，或整合現有 React 設計
 
 ```
 python-project/
@@ -73,13 +87,13 @@ python-project/
 │   │   └── mode_dial.schema.json   # 配置檔案結構定義
 │   ├── simulator.py     # 雙轉盤UI模擬器 ✅
 │   └── validate_config.py  # 配置驗證工具 ✅
-├── systemControl/        # 🎯 系統控制中樞 (重構中)
-│   ├── hardware/        # 🔄 硬體抽象層 (階段2)
-│   │   ├── gpio_controller.py   # GPIO統一管理
-│   │   ├── button_handler.py    # 按鈕事件處理
-│   │   ├── encoder_handler.py   # 轉盤編碼器處理
-│   │   ├── display_controller.py# 雙螢幕控制
-│   │   └── camera_interface.py  # 相機硬體介面
+├── systemControl/        # 🎯 Python 單體應用主目錄 ✅
+│   ├── main.py          # 主程式入口點 ✅
+│   ├── core/            # 核心應用控制器 ✅
+│   │   └── application.py       # CameraApplication 主控制器 ✅
+│   ├── hardware/        # 硬體抽象層 ✅
+│   │   ├── hardware_manager.py  # 硬體統一管理 ✅
+│   │   └── simulator.py         # 硬體模擬器 ✅
 │   ├── settings/        # 系統設定核心 ✅
 │   │   ├── camera_settings.py   # 相機參數設定 ✅
 │   │   ├── display_settings.py  # 螢幕亮度設定 ✅
@@ -108,14 +122,14 @@ python-project/
 ### 📊 模組狀態與進度
 | 模組 | 狀態 | 功能完成度 | 備註 |
 |------|------|------------|------|
+| `systemControl/main.py` | ✅ 完成 | 100% | Python 單體應用入口 |
+| `systemControl/core/application.py` | ✅ 完成 | 90% | 主控制器含 tkinter UI |
+| `systemControl/hardware/` | ✅ 完成 | 80% | 硬體抽象層 + 模擬器 |
+| `systemControl/settings/` | ✅ 完成 | 100% | 基礎設定系統，含軟片模擬 |
 | `analogGauge/` | ✅ 完成 | 100% | RD-1風格錶盤 |
 | `mainCamera/filter/` | ✅ 完成 | 100% | 11種Fujifilm軟片效果 |
 | `mainCamera/colorCorrection/` | ✅ 完成 | 100% | 色彩校正系統 |
-| `stateMachineControl/` | ✅ 完成 | 100% | 純狀態機邏輯，含UI模擬器 |
-| `systemControl/settings/` | ✅ 完成 | 100% | 基礎設定系統，含軟片模擬 |
-| `systemControl/hardware/` | 🔄 開發中 | 0% | 硬體抽象層 |
-| `systemControl/profiles/` | 🔄 開發中 | 0% | 統一配置管理 |
-| `systemControl/integration/` | 🔄 開發中 | 0% | 模組整合層 |  
+| `stateMachineControl/` | ✅ 完成 | 100% | 純狀態機邏輯，含UI模擬器 |  
 
 ---
 
