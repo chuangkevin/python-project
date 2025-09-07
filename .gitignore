@@ -174,3 +174,13 @@ analogGauge/__pycache__
 
 # Gemini CLI directory
 /.claude/
+
+# Node.js dependencies (從前端架構殘留)
+node_modules/
+package-lock.json
+.vite/
+
+# systemControl 特定忽略
+systemControl/node_modules/
+systemControl/.vite/
+systemControl/dist/
