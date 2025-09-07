@@ -1,0 +1,12 @@
+{
+  "current_film": "standard",
+  "custom_adjustments": {
+    "saturation_offset": 0.0,
+    "contrast_offset": 0.0,
+    "highlights_offset": 0.0,
+    "shadows_offset": 0.0,
+    "grain_intensity": 1.0,
+    "vignetting_strength": 1.0
+  },
+  "custom_films": {}
+}
