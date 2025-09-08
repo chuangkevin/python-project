@@ -111,14 +111,71 @@ class CameraApplication:
             
             self.root = tk.Tk()
             self.root.title("RD-1 Camera Control System")
-            self.root.geometry("800x600")
+            self.root.geometry("900x700")
+            self.root.configure(bg="#0f0f0f")  # 深色背景
             
-            # 創建簡單的測試界面
-            self._create_test_ui()
+            # 設定深色主題
+            self._setup_dark_theme()
+            
+            # 創建 analogGauge 風格的相機控制界面
+            self._create_camera_control_ui()
             
             logger.info("✅ UI界面初始化完成")
         except Exception as e:
             logger.error(f"UI界面初始化失敗: {e}")
+            # 如果新界面失敗，回退到測試界面
+            self._create_test_ui()
+            logger.warning("回退到測試界面")
+    
+    def _setup_dark_theme(self):
+        """設定深色主題"""
+        try:
+            from tkinter import ttk
+            style = ttk.Style()
+            style.theme_use('clam')
+            
+            # 自定義深色樣式
+            style.configure('Dark.TFrame', background='#1a1a1a')
+            style.configure('Dark.TLabel', background='#1a1a1a', foreground='#ffffff')
+            style.configure('Dark.TButton', background='#333333', foreground='#ffffff')
+            style.configure('Dark.TNotebook', background='#1a1a1a')
+            style.configure('Dark.TNotebook.Tab', background='#333333', foreground='#ffffff')
+            
+        except Exception as e:
+            logger.warning(f"深色主題設定失敗: {e}")
+    
+    def _create_camera_control_ui(self):
+        """創建 analogGauge 風格的相機控制界面"""
+        try:
+            import sys
+            import tkinter as tk
+            from pathlib import Path
+            
+            # 添加 UI 模組路徑
+            ui_path = Path(__file__).parent.parent / "ui"
+            sys.path.append(str(ui_path))
+            
+            try:
+                from camera_control_display import CameraControlDisplay
+                # 創建 analogGauge 版本
+                self.main_container = tk.Frame(self.root, bg="#0f0f0f")
+                self.main_container.pack(fill="both", expand=True)
+                self.camera_display = CameraControlDisplay(self.main_container)
+            except ImportError:
+                # 回退到簡化版本
+                from simple_camera_control import SimpleCameraControlDisplay
+                self.main_container = tk.Frame(self.root, bg="#0f0f0f")
+                self.main_container.pack(fill="both", expand=True)
+                self.camera_display = SimpleCameraControlDisplay(self.main_container, self.trigger_shutter)
+            
+            # 綁定快門觸發事件
+            if hasattr(self.camera_display, 'shutter_button'):
+                self.camera_display.shutter_button.configure(command=self.trigger_shutter)
+            
+            logger.info("✅ analogGauge 相機控制界面已載入")
+            
+        except Exception as e:
+            logger.error(f"相機控制界面載入失敗: {e}")
             raise
     
     def _create_test_ui(self):
