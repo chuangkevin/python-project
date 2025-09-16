@@ -26,7 +26,7 @@ def main():
         startup_image = Image.new("RGB", (320, 240), "BLACK")
         draw = ImageDraw.Draw(startup_image)
         draw.text((100, 100), "Camera Starting...", fill="WHITE")
-        draw.text((120, 120), "IMX708 Ready", fill="GREEN")
+        draw.text((110, 120), "High FPS Mode", fill="GREEN")
         disp.ShowImage(startup_image.rotate(90, expand=True))
         time.sleep(2)
         
@@ -40,6 +40,7 @@ def main():
             buffer_count=4,  # Increased buffer for smoother streaming
             queue=False     # Disable queueing for lower latency
         )
+        
         # Set camera controls for better performance
         camera.configure(config)
         
@@ -58,71 +59,73 @@ def main():
         # Wait for camera to stabilize
         time.sleep(1)  # Reduced startup time
         
-        logging.info("Starting camera preview on LCD (landscape)...")
+        logging.info("Starting high-FPS camera preview on LCD...")
         
         frame_count = 0
         start_time = time.time()
         fps = 0
+        last_fps_time = time.time()
         
-        # Main camera loop - continuous operation
+        # Pre-create font for better performance (optional)
+        try:
+            font = ImageFont.load_default()
+        except:
+            font = None
+        
+        # Main camera loop - optimized for high FPS
         while True:
             try:
-                # Capture frame from camera
+                # Capture frame from camera (non-blocking)
                 frame = camera.capture_array()
                 
-                # Handle different frame formats
+                # Fast format conversion
                 if frame.shape[2] == 4:  # XBGR8888 format
-                    # Extract RGB channels and swap order
-                    rgb_frame = np.stack([
-                        frame[:, :, 2],  # R from B channel
-                        frame[:, :, 1],  # G from G channel
-                        frame[:, :, 0]   # B from R channel
-                    ], axis=-1)
+                    # Optimized RGB extraction using numpy slicing
+                    rgb_frame = frame[:, :, [2, 1, 0]]  # BGR to RGB swap
                     image = Image.fromarray(rgb_frame, "RGB")
-                elif frame.shape[2] == 3:  # RGB format
-                    image = Image.fromarray(frame, "RGB")
                 else:
-                    # Grayscale
-                    image = Image.fromarray(frame).convert("RGB")
+                    image = Image.fromarray(frame, "RGB")
                 
                 # Resize only if necessary
                 if image.size != (320, 240):
                     image = image.resize((320, 240), Image.NEAREST)  # Faster resize method
                 
-                # Add overlay information (landscape oriented)
-                draw = ImageDraw.Draw(image)
-                
-                # Calculate FPS every 30 frames
                 frame_count += 1
-                if frame_count % 30 == 0:
-                    current_time = time.time()
-                    fps = 30 / (current_time - start_time)
-                    start_time = current_time
                 
-                # Add text overlay (positioned for landscape)
-                draw.text((5, 5), f"FPS: {fps:.1f}", fill="YELLOW")
-                draw.text((5, 25), "IMX708 Camera", fill="WHITE")
-                draw.text((5, 45), "Landscape Mode", fill="CYAN")
-                draw.text((200, 215), f"Frame: {frame_count}", fill="GREEN")
+                # Update FPS calculation less frequently for better performance
+                current_time = time.time()
+                if current_time - last_fps_time >= 1.0:  # Update every second
+                    fps = frame_count / (current_time - start_time)
+                    last_fps_time = current_time
                 
-                # Rotate image 90 degrees clockwise for proper LCD orientation
+                # Add minimal overlay (only every 10th frame to save processing)
+                if frame_count % 10 == 0:
+                    draw = ImageDraw.Draw(image)
+                    draw.text((5, 5), f"FPS: {fps:.1f}", fill="YELLOW")
+                    draw.text((5, 25), "High Performance", fill="CYAN")
+                    draw.text((200, 215), f"{frame_count}", fill="GREEN")
+                
+                # Rotate image 90 degrees clockwise
                 rotated_image = image.rotate(90, expand=True)
                 
                 # Display on LCD
                 disp.ShowImage(rotated_image)
                 
-                if frame_count % 50 == 0:
-                    logging.info(f"Displayed frame {frame_count}, FPS: {fps:.1f}")
-                
                 # Minimal delay for maximum FPS
-                time.sleep(0.01)
+                # No sleep to achieve highest possible framerate
+                
+                # Progress logging (less frequent)
+                if frame_count % 300 == 0:  # Every 300 frames (10 seconds at 30fps)
+                    logging.info(f"Displayed {frame_count} frames, Current FPS: {fps:.1f}")
                 
             except KeyboardInterrupt:
                 logging.info("Stopping by user request...")
                 break
             except Exception as e:
                 logging.error(f"Frame processing error: {e}")
-                break
+                # Continue on error instead of breaking for better stability
+                time.sleep(0.01)
+                continue
         
     except Exception as e:
         logging.error(f"Setup error: {e}")
@@ -138,12 +141,13 @@ def main():
             pass
         
         try:
-            # Show exit screen (landscape)
+            # Show exit screen
             exit_image = Image.new("RGB", (320, 240), "BLACK")
             draw = ImageDraw.Draw(exit_image)
-            draw.text((130, 100), "Camera", fill="WHITE")
+            draw.text((120, 100), "High FPS", fill="WHITE")
             draw.text((140, 120), "Test", fill="GREEN")
             draw.text((125, 140), "Complete!", fill="YELLOW")
+            draw.text((100, 160), f"Final FPS: {fps:.1f}", fill="CYAN")
             disp.ShowImage(exit_image.rotate(90, expand=True))
             time.sleep(3)
             disp.clear()
