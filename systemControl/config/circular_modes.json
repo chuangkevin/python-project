@@ -1,0 +1,62 @@
+{
+  "modes": {
+    "default": {
+      "display_type": "integrated_gauge",
+      "primary": "SHOTS",
+      "small_gauges": ["WB", "QUALITY", "BATTERY"],
+      "animation": { "needle_ease_ms": 280, "quantize_steps": 8 }
+    },
+
+    "film": {
+      "display_type": "film_selector",
+      "items_source": "settings.film.available_presets",
+      "default_index": 0,
+      "film_overlay_ms": 2000,
+      "film_fade_steps": 6,
+      "secondary_control": {
+        "type": "slider",
+        "key": "film_strength",
+        "min": 0,
+        "max": 100,
+        "step": 1
+      }
+    },
+
+    "iso": {
+      "display_type": "numeric_big",
+      "values": [100, 200, 400, 800, 1600, 3200],
+      "default_index": 2,
+      "apply_control": { "action": "apply_iso", "api": "AnalogueGain" }
+    },
+
+    "wb": {
+      "display_type": "enum_list",
+      "values": ["Auto", "Sunny", "Cloud", "Shade", "Custom"],
+      "default_index": 0,
+      "custom_action": "whitecard_capture"
+    },
+
+    "quality": {
+      "display_type": "enum_list",
+      "values": ["BASIC", "FINE", "S.FINE", "RAW"],
+      "default_index": 1
+    },
+
+    "ratio": {
+      "display_type": "enum_list",
+      "values": ["3:2", "4:3", "16:9"],
+      "default_index": 0
+    },
+
+    "focus": {
+      "display_type": "focus_control",
+      "values": ["single", "continuous", "manual"],
+      "default_index": 0
+    },
+
+    "settings": {
+      "display_type": "settings_list",
+      "menu_id": "main"
+    }
+  }
+}
