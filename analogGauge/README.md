@@ -159,6 +159,29 @@ python test_integrated.py
 python test_ui.py
 ```
 
+## 範例：Windows toy (使用 analogGauge)
+
+在 `analogGauge/examples/windows_toy/` 中放了一個簡單的 Windows toy 範例，示範如何把 `RD1Gauge` 用在即時系統監控中（使用 `psutil`）。
+
+執行方式（套件模式，推薦）：
+
+```
+python -m analogGauge.examples.windows_toy.monitor_ui
+```
+
+或在 `analogGauge/examples/windows_toy/` 目錄直接執行：
+
+```
+python .\monitor_ui.py
+```
+
+注意：此範例需要 `psutil` 與 `Pillow` 已安裝，請先執行：
+
+```
+pip install psutil pillow
+```
+
+
 ## 📋 API 參考
 
 ### RD1Gauge 核心類別
