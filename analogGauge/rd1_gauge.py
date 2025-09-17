@@ -41,7 +41,7 @@ class RD1Gauge:
         }
     }
     
-    def __init__(self, width: int = 240, height: int = 240, show_labels: bool = True, glass_effect: bool = True):
+    def __init__(self, width: int = 240, height: int = 240, show_labels: bool = True, glass_effect: bool = False, reset_on_start: bool = True, interpolation_steps: int = 128, quantize: bool = True):
         """
         初始化指針錶盤
         
@@ -57,8 +57,9 @@ class RD1Gauge:
         self.cy = height // 2
         self.r_outer = min(width, height) // 2 - 20
         self.show_labels = show_labels  # 控制是否顯示錶盤標籤
-        self.glass_effect = glass_effect  # 控制玻璃反光效果
-        
+        # glass_effect 參數保留以維持向後相容性，但預設關閉且目前不會執行玻璃渲染
+        self.glass_effect = False
+
         # 初始化中文字體
         self.font = self._get_chinese_font()
         
@@ -73,10 +74,33 @@ class RD1Gauge:
         # 動畫狀態 (用於平滑過渡)
         self.target_values = self.current_values.copy()
         self.animation_values = {k: float(v) for k, v in self.current_values.items()}
-        self.animation_speed = 0.08  # 加快動畫速度，更流暢
-        
-        # 超細緻化步進 - 每個整數值之間插入更多中間步驟
-        self.interpolation_steps = 100  # 增加插值步驟，更流暢
+
+        # animation_rate: 控制收斂速度（單位: 每秒）。較高值收斂越快。
+        # 使用時間（dt）驅動的指數平滑，使動畫在不同 FPS 下表現一致。
+        # 調整為較小值以放慢過渡，使指針移動更為自然（更小的值會更慢）
+        self.animation_rate = 5.0
+        # 用於傳統指針動畫：每個指針的起始值、起始時間與持續時間（秒）
+        self._anim_start_values = {k: float(v) for k, v in self.animation_values.items()}
+        self._anim_start_time = {k: None for k in self.GAUGE_CONFIGS}
+        # duration per index step (秒) 基礎值，可依距離放大
+        # 增加基礎步長以讓傳統的 per-gauge ease 動畫變慢
+        self._base_step_duration = 0.28
+        # per-gauge duration dict
+        self._anim_duration = {k: self._base_step_duration for k in self.GAUGE_CONFIGS}
+
+        # 插值的細分步數（每個 index 之間的 sub-steps），數值越大切分越細
+        # 由 caller 在建構時控制，預設使用較高值以達到更細膩的微步
+        self.interpolation_steps = max(1, int(interpolation_steps))
+        # 是否啟用量化步進（將平滑進度量化為 discrete micro-steps）
+        self.quantize = bool(quantize)
+
+        # 啟動時若要執行歸零動畫，從 max -> min
+        if reset_on_start:
+            self.trigger_reset_animation()
+
+    def reset(self):
+        """Public API: trigger component reset (max -> min) animation."""
+        self.trigger_reset_animation()
         
     def configure_gauge_dynamic(self, gauge_type: str, gauge_purpose: str, values: List[str], 
                                color: tuple = None) -> bool:
@@ -103,6 +127,23 @@ class RD1Gauge:
             self.GAUGE_CONFIGS[gauge_type]["color"] = color
             
         return True
+
+    def trigger_reset_animation(self):
+        """
+        啟動時呼叫：把所有指針設為最大值（index = max）並設定目標為最小值（index = 0），
+        以執行從 max -> min 的歸零動畫（模擬開機時歸零）。
+        """
+        now = time.time()
+        for gauge_type, cfg in self.GAUGE_CONFIGS.items():
+            max_idx = len(cfg["values"]) - 1
+            # set start value to max and target to min
+            self._anim_start_values[gauge_type] = float(max_idx)
+            self.animation_values[gauge_type] = float(max_idx)
+            self.target_values[gauge_type] = 0
+            self._anim_start_time[gauge_type] = now
+            # duration scales with distance
+            dist = abs(max_idx - 0)
+            self._anim_duration[gauge_type] = max(self._base_step_duration, self._base_step_duration * dist)
         
     def set_value(self, gauge_type: str, value: Union[int, str]) -> bool:
         """
@@ -129,7 +170,15 @@ class RD1Gauge:
         
         # 檢查索引範圍
         if 0 <= value < len(config["values"]):
+            # 啟動動畫：記錄起始值與起始時間，並設定目標值
+            start_val = float(self.animation_values[gauge_type])
             self.target_values[gauge_type] = value
+            self._anim_start_values[gauge_type] = start_val
+            self._anim_start_time[gauge_type] = time.time()
+            # duration 隨距離增加，最短為 base_step_duration
+            dist = abs(value - start_val)
+            self._anim_duration = self._anim_duration if hasattr(self, '_anim_duration') else {}
+            self._anim_duration[gauge_type] = max(self._base_step_duration, self._base_step_duration * dist)
             return True
         return False
     
@@ -162,121 +211,23 @@ class RD1Gauge:
     
     def set_glass_effect(self, enabled: bool):
         """
-        設置玻璃反光效果狀態
-        
-        Args:
-            enabled: True 啟用玻璃效果，False 關閉玻璃效果
+        保留 API：設定玻璃反光效果開關，但目前為 no-op（不執行渲染）。
         """
-        self.glass_effect = enabled
+        # 為了避免破壞依賴本方法的程式，保留方法簽名但不啟用效果
+        self.glass_effect = False
     
     def get_glass_effect(self) -> bool:
         """
-        獲取玻璃反光效果狀態
-        
-        Returns:
-            bool: 當前玻璃效果狀態
+        回傳目前玻璃效果狀態。因為功能已停用，始終回傳 False。
         """
-        return self.glass_effect
+        return False
     
     def _draw_glass_overlay(self, img: Image.Image, draw: ImageDraw.Draw) -> None:
+        """保留方法槽位但不執行任何玻璃覆蓋渲染。
+
+        此方法保留以維持向後相容性；如果未來需要重新啟用玻璃效果，可在此實作。
         """
-        繪製高質感玻璃反光遮罩效果
-        
-        Args:
-            img: 要添加效果的圖像
-            draw: ImageDraw 對象
-        """
-        if not self.glass_effect:
-            return
-        
-        width, height = img.size
-        cx = width // 2
-        cy = height // 2
-        radius = min(width, height) // 2 - 10
-        
-        # 創建高質量漸層遮罩
-        overlay = Image.new('RGBA', (width, height), (0, 0, 0, 0))
-        overlay_draw = ImageDraw.Draw(overlay)
-        
-        # 方法1：嘗試加載外部 PNG 反光遮罩
-        glass_overlay_path = os.path.join(os.path.dirname(__file__), "glass_overlay.png")
-        if os.path.exists(glass_overlay_path):
-            try:
-                # 加載外部玻璃遮罩 PNG
-                glass_png = Image.open(glass_overlay_path).convert('RGBA')
-                glass_png = glass_png.resize((width, height), Image.Resampling.LANCZOS)
-                img.paste(glass_png, (0, 0), glass_png)
-                return
-            except Exception:
-                pass  # 如果載入失敗，使用程式生成的效果
-        
-        # 方法2：程式生成高質感玻璃效果
-        # 計算圓心和半徑
-        cx, cy = width // 2, height // 2
-        radius = min(width, height) // 2 - 20
-        
-        # 創建徑向漸層反光
-        for y in range(height):
-            for x in range(width):
-                # 計算到中心的距離
-                dist_to_center = math.sqrt((x - cx)**2 + (y - cy)**2)
-                if dist_to_center > radius:
-                    continue
-                
-                # 計算角度
-                angle = math.atan2(y - cy, x - cx)
-                angle_deg = math.degrees(angle)
-                
-                # 主要反光區域 (左上 45度 到 右上 -45度)
-                if -60 <= angle_deg <= 60:
-                    # 距離中心越近，反光越強
-                    intensity = max(0, 1 - (dist_to_center / radius))
-                    # 根據角度調整反光強度
-                    angle_factor = 1 - abs(angle_deg) / 60
-                    
-                    alpha = int(60 * intensity * angle_factor)
-                    if alpha > 5:  # 避免過暗的像素
-                        overlay_draw.point((x, y), (255, 255, 255, alpha))
-                
-                # 邊緣高光環 (模仿玻璃邊緣的菲涅爾反射)
-                if radius - 15 <= dist_to_center <= radius - 5:
-                    # 頂部和左側邊緣更亮
-                    if -90 <= angle_deg <= 90:
-                        edge_intensity = 1 - abs(angle_deg) / 90
-                        alpha = int(40 * edge_intensity)
-                        overlay_draw.point((x, y), (255, 255, 255, alpha))
-        
-        # 添加弧形高光條 (模仿圓形玻璃的典型反光)
-        highlight_radius = radius * 0.8
-        for angle in range(-30, 31, 2):  # 頂部60度弧形
-            angle_rad = math.radians(angle)
-            hx = cx + int(highlight_radius * math.cos(angle_rad))
-            hy = cy + int(highlight_radius * math.sin(angle_rad))
-            
-            # 繪製弧形高光線
-            for thickness in range(8):
-                offset_x = hx + random.randint(-2, 2)
-                offset_y = hy + random.randint(-2, 2)
-                if 0 <= offset_x < width and 0 <= offset_y < height:
-                    alpha = max(0, 50 - thickness * 6)
-                    overlay_draw.point((offset_x, offset_y), (255, 255, 255, alpha))
-        
-        # 添加細緻的邊緣反光點
-        for angle in range(0, 360, 15):
-            angle_rad = math.radians(angle)
-            edge_x = cx + int((radius - 8) * math.cos(angle_rad))
-            edge_y = cy + int((radius - 8) * math.sin(angle_rad))
-            
-            # 頂部和左側邊緣更明顯
-            if -90 <= angle <= 90:
-                alpha = 30
-                overlay_draw.ellipse(
-                    (edge_x - 1, edge_y - 1, edge_x + 1, edge_y + 1),
-                    fill=(255, 255, 255, alpha)
-                )
-        
-        # 將遮罩合併到原圖
-        img.paste(overlay, (0, 0), overlay)
+        return
     
     def _get_chinese_font(self, size: int = 12):
         """
@@ -327,27 +278,75 @@ class RD1Gauge:
             print(f"字體載入失敗，使用預設字體: {e}")
             return ImageFont.load_default()
     
-    def update_animation(self):
-        """更新動畫狀態 - 細緻化插值"""
+    def update_animation(self, dt: float = None):
+        """
+        更新動畫狀態（時間驅動）。
+
+        Args:
+            dt: 上一幀與當前幀的時間差（秒）。
+                - 若為 None，函式會以預設小時間步（1/120s）計算，
+                  以保證向後相容性（原先呼叫不帶參數的情況）。
+
+        使用指數平滑（exponential smoothing）：
+            step = diff * (1 - exp(-animation_rate * dt))
+        這樣在不同的實際 FPS 下，收斂特性保持一致。
+        """
+        if dt is None:
+            # 向後相容：當呼叫方未提供 dt 時，假設 120 FPS 的小步長
+            dt = 1.0 / 120.0
+
+        # 防止極小或負值
+        if dt <= 0:
+            return
+
+        now = time.time()
+        eps = 1e-6
+
         for gauge_type in self.GAUGE_CONFIGS:
             current = self.animation_values[gauge_type]
             target = float(self.target_values[gauge_type])
-            
-            # 計算更細緻的步進
-            diff = target - current
-            
-            if abs(diff) > 0.001:  # 極小閾值確保超完美平滑
-                # 使用極小步進配合120fps
-                step_size = diff * self.animation_speed
-                
-                # 限制單次步進的最大值，配合120fps的極小移動
-                max_step = 0.008  # 極小的單次最大移動距離
-                if abs(step_size) > max_step:
-                    step_size = max_step if step_size > 0 else -max_step
-                
-                self.animation_values[gauge_type] += step_size
+
+            # 如果 per-gauge 有設定 start_time，使用時間內插 (ease-out)
+            start_t = self._anim_start_time.get(gauge_type)
+            if start_t is not None:
+                elapsed = max(0.0, now - start_t)
+                duration = max(self._base_step_duration, self._anim_duration.get(gauge_type, self._base_step_duration))
+                # normalized progress
+                t = min(1.0, elapsed / duration) if duration > 0 else 1.0
+                # ease-out cubic
+                ease = 1 - pow(1 - t, 3)
+                start_val = self._anim_start_values.get(gauge_type, current)
+                raw_new_val = start_val + (target - start_val) * ease
+
+                # apply quantized micro-steps to make transitions feel like finer discrete steps
+                dist = abs(target - start_val)
+                if dist > eps:
+                    steps = max(1, int(dist * self.interpolation_steps))
+                    # normalized fraction of progress
+                    frac = (raw_new_val - start_val) / (target - start_val) if (target - start_val) != 0 else 1.0
+                    quant_frac = round(frac * steps) / steps
+                    new_val = start_val + (target - start_val) * quant_frac
+                else:
+                    new_val = raw_new_val
+
+                self.animation_values[gauge_type] = new_val
+
+                # 如果完成，清除 start_time
+                if t >= 1.0 - eps:
+                    self.animation_values[gauge_type] = target
+                    self._anim_start_time[gauge_type] = None
             else:
-                self.animation_values[gauge_type] = target
+                # fallback: exponential smoothing based on dt
+                try:
+                    factor = 1.0 - math.exp(-self.animation_rate * dt)
+                except Exception:
+                    factor = min(1.0, self.animation_rate * dt)
+
+                diff = target - current
+                if abs(diff) > eps:
+                    self.animation_values[gauge_type] = current + diff * factor
+                else:
+                    self.animation_values[gauge_type] = target
     
     def _calculate_needle_position(self, gauge_type: str) -> tuple:
         """計算指針位置 (支援動畫)"""

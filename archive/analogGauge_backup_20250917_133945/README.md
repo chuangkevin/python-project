@@ -1,107 +1,52 @@
-# analogGauge# Epson RD-1 風格指針錶盤模組
+# Epson RD-1 風格指針錶盤模組
 
+高精度模擬 Epson RD-1 數位相機頂部的四個指針錶盤，提供整合式錶盤渲染和獨立測試UI。
 
+## 🎯 整合式錶盤系統
 
-簡要：本目錄包含 RD1-style 模擬儀表核心 (`rd1_gauge.py`)、一個靜態 runner (`run_integrated.py`) 與一個手動控制 GUI (`manual_control.py`)。glass overlay 已停用，舊資源被移到 `../archive/analogGauge_backup_*`。高精度模擬 Epson RD-1 數位相機頂部的四個指針錶盤，提供整合式錶盤渲染和獨立測試UI。
-
-
-## 更新紀錄 (最近)
-
-- 2025-09-17: 新增 `Reset on start` 勾選與 `Reset` 按鈕到 `manual_control.py`，可由 UI 或程式呼叫 `RD1Gauge.reset()` 觸發從最大值回歸到最小值的啟動動畫。
-- 2025-09-17: 調整動畫預設以獲得更自然的指針移動：`animation_rate` 預設調為 `5.0`，`_base_step_duration` 調為 `0.28`，啟動（max→min）動畫約 1.2–1.4 秒完成（視距離而定）。
-
-
-
-## 需求## 🎯 整合式錶盤系統
-
-- Python 3.8+
-
-- Pillow (`pip install pillow`)### 核心特色
-
-- Tkinter（Windows 預裝；Linux/macOS 需另行安裝系統套件）
+### 核心特色
 
 - **像素級精確復刻**：基於真實 RD-1 相機照片精確重現錶盤佈局
+- **超流暢 120fps 動畫**：微步插值動畫系統，8.3ms 更新間隔
+- **整合式顯示**：四個錶盤完美整合在 240x240 圓形顯示器
+- **高品質渲染**：反鋸齒線條、精細刻度、專業色彩
 
-## 快速使用- **超流暢 120fps 動畫**：微步插值動畫系統，8.3ms 更新間隔
+### 四個指針錶盤佈局
 
-- 生成靜態整合影像（runner）：- **整合式顯示**：四個錶盤完美整合在 240x240 圓形顯示器
-
-  - 在專案根目錄或任意位置執行：- **高品質渲染**：反鋸齒線條、精細刻度、專業色彩
-
-    ```
-
-    python d:\Projects\python-project\analogGauge\run_integrated.py### 四個指針錶盤佈局
-
-    ```
-
-  - 會在 `analogGauge/` 產生 `integrated_output.png`。```text
-
+```text
       [WB]           [QUALITY]
+       90°             90°
+    (左上角)        (右上角)
 
-- 啟動手動控制 GUI（推薦以 module 模式執行）：       90°             90°
+           [SHOTS]
+            360°
+         (中央圓形)
 
-  - 在專案根目錄執行：    (左上角)        (右上角)
-
-    ```
-
-    python -m analogGauge.manual_control           [SHOTS]
-
-    ```            360°
-
-  - 或在 `analogGauge` 目錄執行：         (中央圓形)
-
-    ```
-
-    python .\manual_control.py         [BATTERY]
-
-    ```            90°
-
-  - GUI 提供滑桿調整 SHOTS/WB/BATTERY/QUALITY 與儲存影像功能。         (中下方)
-
+         [BATTERY]
+            90°
+         (中下方)
 ```
 
-## 程式化 API 範例
-
-```python### 錶盤規格
-
-from analogGauge.rd1_gauge import RD1Gauge
+### 錶盤規格
 
 - **SHOTS (拍攝數)**：360° 圓形錶盤，外圍刻度標示
-
-g = RD1Gauge(width=800, height=400)  - 數值：E → 10 → 20 → 50 → 100 → 500
-
-g.set_shots(0.5)          # 範例：設定數值- **WHITE BALANCE (白平衡)**：90° 扇形錶盤，左上角位置
-
-g.set_white_balance(0.3)  - 數值：A(自動) → ☀(晴天) → ⛅(多雲) → ☁(陰天) → 💡(白熾燈) → 💡(螢光燈)
-
-for _ in range(10):- **BATTERY (電池電量)**：90° 扇形錶盤，中下方位置，向上指向
-
-    g.update_animation()  # 平滑過渡/更新內部狀態  - 數值：E(空) → 1/4 → 1/2 → 3/4 → F(滿)
-
-img = g.draw_integrated_rd1_display()- **QUALITY (影像品質)**：90° 扇形錶盤，右上角位置
-
-img.save("example_output.png")  - 數值：R(RAW) → H(高品質JPEG) → N(一般JPEG)
-
-```
+  - 數值：E → 10 → 20 → 50 → 100 → 500
+- **WHITE BALANCE (白平衡)**：90° 扇形錶盤，左上角位置
+  - 數值：A(自動) → ☀(晴天) → ⛅(多雲) → ☁(陰天) → 💡(白熾燈) → 💡(螢光燈)
+- **BATTERY (電池電量)**：90° 扇形錶盤，中下方位置，向上指向
+  - 數值：E(空) → 1/4 → 1/2 → 3/4 → F(滿)
+- **QUALITY (影像品質)**：90° 扇形錶盤，右上角位置
+  - 數值：R(RAW) → H(高品質JPEG) → N(一般JPEG)
 
 ## 🔧 技術架構
 
-## Archive / 還原
+### 核心檔案
 
-- 舊的 glass overlay 與生成器已移到：### 核心檔案
-
-  `D:\Projects\python-project\archive\analogGauge_backup_<timestamp>\`
-
-- 若需要還原某檔案，請複製回 `analogGauge/`。若需要，我可以幫你還原並 commit。- **`rd1_gauge.py`** - RD1Gauge 核心類別
-
+- **`rd1_gauge.py`** - RD1Gauge 核心類別
   - 整合式錶盤渲染引擎
-
-## 注意事項  - 120fps 微步動畫系統
-
-- 若在 headless 或 CI 環境執行 GUI，會失敗（沒有圖形環境）。請使用 runner 或程式化 API 以產生影像。  - 無 UI 依賴的純圖像生成
-
-- 若在不同工作目錄執行時發生 import 錯誤，請使用 `python -m analogGauge.manual_control` 或確保父目錄在 `PYTHONPATH` 中。- **`test_integrated.py`** - 整合式錶盤完整測試
-
+  - 120fps 微步動畫系統
+  - 無 UI 依賴的純圖像生成
+- **`test_integrated.py`** - 整合式錶盤完整測試
 - **`test_ui.py`** - 傳統 UI 測試介面
 - **`requirements.txt`** - 依賴套件清單
 
