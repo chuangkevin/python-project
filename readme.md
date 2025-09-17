@@ -82,6 +82,28 @@
 - ✅ **圓形導航界面**: 主螢幕浮現式圓形選單，支援即時預覽和狀態切換
 
 ```
+
+## analogGauge notes (refactor summary)
+
+This project contains a small standalone analog gauge module used by the circular "secondary" display in the main application. Recent refactors intentionally kept this module lightweight and testable; the details below help developers discover and run the examples.
+
+- Location: `analogGauge/`
+- Purpose: RD-1 style integrated analog gauge rendering and a small animation API used by the circular display demo.
+- Public API (high level):
+  - `RD1Gauge(reset_on_start=True|False, interpolation_steps=..., quantize=..., animation_rate=...)` — create the gauge renderer.
+  - `gauge.set_value(key, value)` — set a target value (e.g. `'iso'`, `'wb'`, `'ev'`).
+  - `gauge.update_animation(dt)` — advance the internal animation by `dt` seconds.
+  - `gauge.draw_integrated_rd1_display()` / `gauge.draw_gauge()` — return a Pillow `Image` with the drawn dial for embedding in UIs or saving to disk.
+  - `gauge.reset()` — run the component reset animation (the demo calls this when switching back to `default` mode to show the needle-first reset).
+
+- Examples and runners:
+  - `analogGauge/manual_control.py` — small interactive helper to exercise the gauge manually.
+  - `analogGauge/run_integrated.py` — a static runner that generates the integrated dial images (useful for smoke tests and CI).
+
+Notes:
+- Glass/gloss overlays were intentionally removed from the core `analogGauge` module and implemented at the UI/demo level only where needed. The module focuses on rendering, interpolation settings, and a compact API.
+- If you run into import errors when running the Tk demo, the demo includes a fallback to import `RD1Gauge` by path (useful when running directly from the repository root).
+
 python-project/
 ├── analogGauge/          # RD-1 風格指針錶盤模組 ✅
 ├── mainCamera/           # 主相機系統 ✅
