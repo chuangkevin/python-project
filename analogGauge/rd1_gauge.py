@@ -556,21 +556,19 @@ class RD1Gauge:
         # 三個小錶盤區域 - 使用動態配置
         small_gauge_radius = 90  # 恢復之前的大小
         small_gauges = {
-            # 左上小錶盤 (WB -> RAM)
+            # Final layout: Shifted the entire cluster down by 10px for better balance
             "WB": {
-                "center": (cx - 110, cy - 50),  # 恢復之前位置
+                "center": (cx - 110, cy - 40),
                 "values": self.GAUGE_CONFIGS["WB"]["values"],
                 "current_index": self.animation_values["WB"]
             },
-            # 右上小錶盤 (Quality -> 硬碟)
             "QUALITY": {
-                "center": (cx + 110, cy - 50),  # 恢復之前位置
+                "center": (cx + 110, cy - 40),
                 "values": self.GAUGE_CONFIGS["QUALITY"]["values"],
                 "current_index": self.animation_values["QUALITY"]
             },
-            # 中下小錶盤 (Battery -> 網路)
             "BATTERY": {
-                "center": (cx, cy + 110),  # 恢復之前位置
+                "center": (cx, cy + 100),
                 "values": self.GAUGE_CONFIGS["BATTERY"]["values"],
                 "current_index": self.animation_values["BATTERY"]
             }
@@ -582,18 +580,24 @@ class RD1Gauge:
             values = gauge_data["values"]
             current_index = gauge_data["current_index"]
             num_values = len(values)
-            
-            # 小錶盤使用90度扇形範圍，根據照片中實際指針指向方向
-            if gauge_type == "WB":  # 左上錶盤，指針指向右下方向
-                start_angle = -45   # 從右上開始
-                arc_range = 90      # 到右下結束
-            elif gauge_type == "QUALITY":  # 右上錶盤，指針指向左下方向  
-                start_angle = 135   # 從左下開始
-                arc_range = 90      # 到左上結束
-            elif gauge_type == "BATTERY":  # 中下錶盤，指針指向上方向
-                start_angle = -135  # 從左上開始
-                arc_range = 90      # 到右上結束
+
+            # Set a smaller radius for the battery gauge to create visual hierarchy
+            if gauge_type == "BATTERY":
+                small_gauge_radius = 75 # Smaller radius for the bottom gauge
             else:
+                small_gauge_radius = 90 # Original radius for the top two gauges
+
+            # Define arc direction for each sub-dial
+            if gauge_type == "WB":  # Top-left, points down-right
+                start_angle = -45
+                arc_range = 90
+            elif gauge_type == "QUALITY":  # Top-right, points down-left
+                start_angle = 135
+                arc_range = 90
+            elif gauge_type == "BATTERY":  # Bottom, points up
+                start_angle = -135
+                arc_range = 90
+            else: # Fallback
                 start_angle = -45
                 arc_range = 90
             
