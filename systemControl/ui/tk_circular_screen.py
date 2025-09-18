@@ -24,6 +24,12 @@ from typing import Callable, Dict, Any, Optional
 from pathlib import Path
 from PIL import ImageTk
 import traceback
+import sys
+
+# Add project root to sys.path for module imports
+project_root = Path(__file__).resolve().parents[2]
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
 
 # Import RD1Gauge from analogGauge (report errors to help debugging)
 try:
