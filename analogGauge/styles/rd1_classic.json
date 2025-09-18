@@ -1,0 +1,27 @@
+{
+    "name": "RD-1 Classic",
+    "background_color": "#0F0F0F",
+    "text_color": "#FFFFFF",
+    "font_regular": "msyh.ttc",
+    "font_light": "msyhl.ttc",
+    "main_dial": {
+        "bg_color": "#191919",
+        "outline_color": "#B4B4B4",
+        "tick_color": "#C8C8C8",
+        "needle_style": "sharp",
+        "needle_color": "#FFFFFF",
+        "needle_width": 10
+    },
+    "sub_dial": {
+        "arc_color": "#969696",
+        "tick_color": "#B4B4B4",
+        "text_color": "#C8C8C8",
+        "needle_style": "sharp",
+        "needle_width": 6
+    },
+    "sub_dial_colors": {
+        "WB": "#966432",
+        "QUALITY": "#783232",
+        "BATTERY": "#327832"
+    }
+}

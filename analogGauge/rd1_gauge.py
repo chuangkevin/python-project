@@ -7,8 +7,15 @@ import math
 import time
 import os
 import random
+import json
+from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 from typing import Dict, List, Union, Optional
+
+def hex_to_rgb(hex_color: str) -> tuple:
+    """Converts a hex color string to an RGB tuple."""
+    hex_color = hex_color.lstrip('#')
+    return tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
 
 class RD1Gauge:
     """Epson RD-1 風格的指針錶盤"""
@@ -18,85 +25,72 @@ class RD1Gauge:
         "SHOTS": {
             "name": "剩餘拍攝數",
             "values": ["E", "10", "20", "50", "100", "500"],
-            "color": (50, 50, 50),     # 深灰指針
-            "position": "top_left"
         },
         "WB": {
             "name": "白平衡", 
             "values": ["A", "☀", "⛅", "☁", "💡", "💡"],
-            "color": (150, 100, 50),   # 棕色指針
-            "position": "top_right"
         },
         "BATTERY": {
             "name": "電池電量",
             "values": ["E", "1/4", "1/2", "3/4", "F"],
-            "color": (50, 120, 50),    # 深綠指針
-            "position": "bottom_left"
         },
         "QUALITY": {
             "name": "影像品質",
             "values": ["R", "H", "N"],
-            "color": (120, 50, 50),    # 深紅指針
-            "position": "bottom_right"
         }
     }
     
-    def __init__(self, width: int = 240, height: int = 240, show_labels: bool = True, glass_effect: bool = False, reset_on_start: bool = True, interpolation_steps: int = 128, quantize: bool = True):
-        """
-        初始化指針錶盤
-        
-        Args:
-            width: 錶盤寬度
-            height: 錶盤高度
-            show_labels: 是否顯示錶盤下方的用途標籤
-            glass_effect: 是否啟用玻璃反光效果
-        """
+    def __init__(self, width: int = 480, height: int = 480, style: str = 'rd1_classic', show_labels: bool = True, reset_on_start: bool = True, interpolation_steps: int = 128, quantize: bool = True):
         self.width = width
         self.height = height
         self.cx = width // 2
         self.cy = height // 2
-        self.r_outer = min(width, height) // 2 - 20
-        self.show_labels = show_labels  # 控制是否顯示錶盤標籤
-        # glass_effect 參數保留以維持向後相容性，但預設關閉且目前不會執行玻璃渲染
-        self.glass_effect = False
+        self.show_labels = show_labels
+        
+        self.style_config = {}
+        self.font = None
+        self.font_thin = None
+        self.load_style(style)
 
-        # 初始化中文字體
-        self.font = self._get_chinese_font()
-        
-        # 當前狀態
-        self.current_values = {
-            "SHOTS": 0,    # 指向 "E"
-            "WB": 0,       # 指向 "A"
-            "BATTERY": 4,  # 指向 "F"
-            "QUALITY": 0   # 指向 "R"
-        }
-        
-        # 動畫狀態 (用於平滑過渡)
+        self.current_values = {"SHOTS": 0, "WB": 0, "BATTERY": 4, "QUALITY": 0}
         self.target_values = self.current_values.copy()
         self.animation_values = {k: float(v) for k, v in self.current_values.items()}
 
-        # animation_rate: 控制收斂速度（單位: 每秒）。較高值收斂越快。
-        # 使用時間（dt）驅動的指數平滑，使動畫在不同 FPS 下表現一致。
-        # 調整為較小值以放慢過渡，使指針移動更為自然（更小的值會更慢）
         self.animation_rate = 5.0
-        # 用於傳統指針動畫：每個指針的起始值、起始時間與持續時間（秒）
         self._anim_start_values = {k: float(v) for k, v in self.animation_values.items()}
         self._anim_start_time = {k: None for k in self.GAUGE_CONFIGS}
-        # duration per index step (秒) 基礎值，可依距離放大
-        # 增加基礎步長以讓傳統的 per-gauge ease 動畫變慢
         self._base_step_duration = 0.28
-        # per-gauge duration dict
         self._anim_duration = {k: self._base_step_duration for k in self.GAUGE_CONFIGS}
 
-        # 插值的細分步數（每個 index 之間的 sub-steps），數值越大切分越細
-        # 由 caller 在建構時控制，預設使用較高值以達到更細膩的微步
         self.interpolation_steps = max(1, int(interpolation_steps))
-        # 是否啟用量化步進（將平滑進度量化為 discrete micro-steps）
         self.quantize = bool(quantize)
 
-        # 啟動時若要執行歸零動畫，從 max -> min
         if reset_on_start:
             self.trigger_reset_animation()
+
+    def load_style(self, style_name: str):
+        """Loads a style configuration from a JSON file."""
+        style_path = Path(__file__).parent / 'styles' / f'{style_name}.json'
+        if not style_path.exists():
+            raise FileNotFoundError(f"Style file not found: {style_path}")
+        
+        with open(style_path, 'r', encoding='utf-8') as f:
+            self.style_config = json.load(f)
+        
+        font_regular_name = self.style_config.get('font_regular', 'msyh.ttc')
+        font_light_name = self.style_config.get('font_light', 'msyhl.ttc')
+        
+        self.font = self._get_font_by_name(font_regular_name)
+        self.font_thin = self._get_font_by_name(font_light_name)
+
+    def _get_font_by_name(self, font_name: str, size: int = 12):
+        font_path = f"C:/Windows/Fonts/{font_name}"
+        try:
+            if os.path.exists(font_path):
+                return ImageFont.truetype(font_path, size)
+        except Exception:
+            pass # Fallback to default
+        return ImageFont.load_default()
 
     def reset(self):
         """Public API: trigger component reset (max -> min) animation."""
@@ -229,54 +223,232 @@ class RD1Gauge:
         """
         return
     
-    def _get_chinese_font(self, size: int = 12):
-        """
-        獲取支援中文的字體
+    def configure_gauge_dynamic(self, gauge_type: str, gauge_purpose: str, values: List[str]):
+        if gauge_type not in self.GAUGE_CONFIGS: return False
+        self.GAUGE_CONFIGS[gauge_type]["name"] = gauge_purpose
+        self.GAUGE_CONFIGS[gauge_type]["values"] = values
+        return True
+
+    def trigger_reset_animation(self):
+        now = time.time()
+        for gauge_type, cfg in self.GAUGE_CONFIGS.items():
+            max_idx = len(cfg["values"]) - 1
+            self._anim_start_values[gauge_type] = float(max_idx)
+            self.animation_values[gauge_type] = float(max_idx)
+            self.target_values[gauge_type] = 0
+            self._anim_start_time[gauge_type] = now
+            dist = abs(max_idx - 0)
+            self._anim_duration[gauge_type] = max(self._base_step_duration, self._base_step_duration * dist)
         
-        Args:
-            size: 字體大小
-            
-        Returns:
-            ImageFont: 支援中文的字體對象
-        """
-        import os
-        import platform
+    def set_value(self, gauge_type: str, value: Union[int, str]) -> bool:
+        if gauge_type not in self.GAUGE_CONFIGS: return False
+        config = self.GAUGE_CONFIGS[gauge_type]
+        if isinstance(value, str):
+            try:
+                value = config["values"].index(value)
+            except ValueError:
+                return False
         
-        try:
-            system = platform.system()
+        if 0 <= value < len(config["values"]):
+            start_val = float(self.animation_values[gauge_type])
+            self.target_values[gauge_type] = value
+            self._anim_start_values[gauge_type] = start_val
+            self._anim_start_time[gauge_type] = time.time()
+            dist = abs(value - start_val)
+            self._anim_duration[gauge_type] = max(self._base_step_duration, self._base_step_duration * dist)
+            return True
+        return False
+    
+    def get_value(self, gauge_type: str) -> Optional[str]:
+        if gauge_type not in self.GAUGE_CONFIGS: return None
+        config = self.GAUGE_CONFIGS[gauge_type]
+        index = int(round(self.animation_values[gauge_type]))
+        if 0 <= index < len(config["values"]):
+            return config["values"][index]
+        return None
+    
+    def update_animation(self, dt: float = None):
+        if dt is None: dt = 1.0 / 120.0
+        if dt <= 0: return
+        now = time.time()
+        eps = 1e-6
+
+        for gauge_type in self.GAUGE_CONFIGS:
+            current = self.animation_values[gauge_type]
+            target = float(self.target_values[gauge_type])
+            start_t = self._anim_start_time.get(gauge_type)
+            if start_t is not None:
+                elapsed = max(0.0, now - start_t)
+                duration = max(self._base_step_duration, self._anim_duration.get(gauge_type, self._base_step_duration))
+                t = min(1.0, elapsed / duration) if duration > 0 else 1.0
+                ease = 1 - pow(1 - t, 3)
+                start_val = self._anim_start_values.get(gauge_type, current)
+                raw_new_val = start_val + (target - start_val) * ease
+                dist = abs(target - start_val)
+                if dist > eps and self.quantize:
+                    steps = max(1, int(dist * self.interpolation_steps))
+                    frac = (raw_new_val - start_val) / (target - start_val) if (target - start_val) != 0 else 1.0
+                    quant_frac = round(frac * steps) / steps
+                    new_val = start_val + (target - start_val) * quant_frac
+                else:
+                    new_val = raw_new_val
+                self.animation_values[gauge_type] = new_val
+                if t >= 1.0 - eps:
+                    self.animation_values[gauge_type] = target
+                    self._anim_start_time[gauge_type] = None
+            else:
+                factor = 1.0 - math.exp(-self.animation_rate * dt)
+                diff = target - current
+                if abs(diff) > eps:
+                    self.animation_values[gauge_type] += diff * factor
+                else:
+                    self.animation_values[gauge_type] = target
+
+    def _draw_sharp_needle(self, draw, cx, cy, tip_x, tip_y, color, width):
+        angle = math.atan2(tip_y - cy, tip_x - cx)
+        perp_angle = angle + math.pi / 2
+        half_width = width / 2
+        
+        base_left_x = cx + half_width * math.cos(perp_angle)
+        base_left_y = cy + half_width * math.sin(perp_angle)
+        base_right_x = cx - half_width * math.cos(perp_angle)
+        base_right_y = cy - half_width * math.sin(perp_angle)
+        
+        tail_length = width * 1.2
+        tail_center_x = cx - tail_length * math.cos(angle)
+        tail_center_y = cy - tail_length * math.sin(angle)
+        
+        draw.polygon([(tip_x, tip_y), (base_left_x, base_left_y), (tail_center_x, tail_center_y), (base_right_x, base_right_y)], fill=color)
+
+    def _draw_specture_main_needle(self, draw, cx, cy, tip_x, tip_y, color, width):
+        angle = math.atan2(tip_y - cy, tip_x - cx)
+        perp_angle = angle + math.pi / 2
+        half_width = width / 2
+        base_x1 = cx + half_width * math.cos(perp_angle)
+        base_y1 = cy + half_width * math.sin(perp_angle)
+        base_x2 = cx - half_width * math.cos(perp_angle)
+        base_y2 = cy - half_width * math.sin(perp_angle)
+        draw.polygon([(tip_x, tip_y), (base_x1, base_y1), (base_x2, base_y2)], fill=color)
+
+    def _draw_specture_secondary_needle(self, draw, cx, cy, tip_x, tip_y, color, width):
+        draw.line([(cx, cy), (tip_x, tip_y)], fill=color, width=int(width))
+
+    def draw(self) -> Image.Image:
+        """Renders the integrated display based on the loaded style config."""
+        style = self.style_config
+        bg_color = hex_to_rgb(style['background_color'])
+        img = Image.new("RGB", (self.width, self.height), bg_color)
+        draw = ImageDraw.Draw(img, 'RGBA')
+        cx, cy = self.width // 2, self.height // 2
+        main_radius = 140
+
+        # --- Main Dial ---
+        main_dial_style = style['main_dial']
+        main_bg_color = hex_to_rgb(main_dial_style['bg_color'])
+        main_outline_color = hex_to_rgb(main_dial_style['outline_color'])
+        main_tick_color = hex_to_rgb(main_dial_style['tick_color'])
+        draw.ellipse((cx - main_radius, cy - main_radius, cx + main_radius, cy + main_radius), fill=main_bg_color, outline=main_outline_color, width=3)
+
+        shots_config = self.GAUGE_CONFIGS["SHOTS"]
+        shots_values = shots_config["values"]
+        for i, value in enumerate(shots_values):
+            angle_deg = -150 + (300 * i / (len(shots_values) - 1))
+            angle = math.radians(angle_deg)
+            tick_start_r = main_radius - 15
+            tick_end_r = main_radius - 5
+            draw.line([(cx + tick_start_r * math.cos(angle), cy + tick_start_r * math.sin(angle)), 
+                       (cx + tick_end_r * math.cos(angle), cy + tick_end_r * math.sin(angle))], 
+                      fill=main_tick_color, width=2)
             
-            if system == "Windows":
-                # Windows 系統字體路徑
-                font_paths = [
-                    "C:/Windows/Fonts/msyh.ttc",      # 微軟雅黑
-                    "C:/Windows/Fonts/simhei.ttf",    # 黑體
-                    "C:/Windows/Fonts/simsun.ttc",    # 宋體
-                    "C:/Windows/Fonts/arial.ttf"      # 備用 Arial
-                ]
-            elif system == "Darwin":  # macOS
-                font_paths = [
-                    "/System/Library/Fonts/PingFang.ttc",    # 蘋方
-                    "/System/Library/Fonts/Helvetica.ttc",   # Helvetica
-                    "/System/Library/Fonts/Arial.ttf"        # Arial
-                ]
-            else:  # Linux
-                font_paths = [
-                    "/usr/share/fonts/truetype/wqy/wqy-microhei.ttc",
-                    "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
-                    "/usr/share/fonts/TTF/DejaVuSans.ttf"
-                ]
+            label_r = main_radius + 15
+            text_color = hex_to_rgb(main_dial_style.get('text_color', style.get('text_color', '#FFFFFF')))
+            font_size = main_dial_style.get('font_size', 12)
+            font = self._get_font_by_name(self.style_config.get('font_regular', 'msyh.ttc'), size=font_size)
+            draw.text((cx + label_r * math.cos(angle), cy + label_r * math.sin(angle)), value, 
+                      fill=text_color, font=font, anchor="mm")
+
+        # --- Sub Dials ---
+        sub_dial_style = style['sub_dial']
+        small_gauges = {
+            "WB": {"center": (cx - 110, cy - 40), "start_angle": -45, "range": 90},
+            "QUALITY": {"center": (cx + 110, cy - 40), "start_angle": 135, "range": 90},
+            "BATTERY": {"center": (cx, cy + 100), "start_angle": -135, "range": 90}
+        }
+
+        for gauge_type, cfg in small_gauges.items():
+            gx, gy = cfg["center"]
+            values = self.GAUGE_CONFIGS[gauge_type]["values"]
+            num_values = len(values)
+            radius = 75 if gauge_type == "BATTERY" else 90
+
+            if 'bg_color' in sub_dial_style:
+                draw.ellipse((gx - radius, gy - radius, gx + radius, gy + radius), fill=hex_to_rgb(sub_dial_style['bg_color']))
+
+            if 'arc_color' in sub_dial_style:
+                draw.arc([gx - radius, gy - radius, gx + radius, gy + radius], start=cfg['start_angle'], end=cfg['start_angle'] + cfg['range'], fill=hex_to_rgb(sub_dial_style['arc_color']), width=2)
+
+            for i, val in enumerate(values):
+                angle = math.radians(cfg['start_angle'] + (cfg['range'] * i / (num_values - 1)))
+                tick_start_r = radius - 10
+                tick_end_r = radius - 5
+                draw.line([(gx + tick_start_r * math.cos(angle), gy + tick_start_r * math.sin(angle)),
+                           (gx + tick_end_r * math.cos(angle), gy + tick_end_r * math.sin(angle))],
+                          fill=hex_to_rgb(sub_dial_style['tick_color']), width=1)
+                
+                if i == 0 or i == num_values - 1:
+                    label_r = radius - 20
+                    font_size = sub_dial_style.get('font_size', 10)
+                    font = self._get_font_by_name(self.style_config.get('font_light', 'msyhl.ttc'), size=font_size)
+                    draw.text((gx + label_r * math.cos(angle), gy + label_r * math.sin(angle)), str(val),
+                              fill=hex_to_rgb(sub_dial_style['text_color']), font=font, anchor="mm")
+
+            # Draw sub-dial needle
+            needle_style = sub_dial_style['needle_style']
+            needle_color = hex_to_rgb(style.get('sub_dial_colors', {}).get(gauge_type, sub_dial_style.get('needle_color', '#FFFFFF')))
+            needle_width = sub_dial_style['needle_width']
+            current_index = self.animation_values[gauge_type]
+            needle_angle = math.radians(cfg['start_angle'] + (cfg['range'] * current_index / (num_values - 1)))
+            needle_len = radius - 15
             
-            # 嘗試載入字體
-            for font_path in font_paths:
-                if os.path.exists(font_path):
-                    return ImageFont.truetype(font_path, size)
+            needle_func = getattr(self, f'_draw_{needle_style}', self._draw_sharp_needle)
+            tip_x = gx + needle_len * math.cos(needle_angle)
+            tip_y = gy + needle_len * math.sin(needle_angle)
+            needle_func(draw, gx, gy, tip_x, tip_y, needle_color, needle_width)
             
-            # 如果都找不到，使用預設字體
-            return ImageFont.load_default()
-            
-        except Exception as e:
-            print(f"字體載入失敗，使用預設字體: {e}")
-            return ImageFont.load_default()
+            draw.ellipse((gx - 4, gy - 4, gx + 4, gy + 4), fill=needle_color)
+
+        # --- Main Needle ---
+        main_needle_style = main_dial_style['needle_style']
+        main_needle_color = hex_to_rgb(main_dial_style['needle_color'])
+        main_needle_width = main_dial_style['needle_width']
+        shots_index = self.animation_values["SHOTS"]
+        shots_num_values = len(shots_config["values"])
+        main_needle_angle = math.radians(-150 + (300 * shots_index / (shots_num_values - 1)))
+        main_needle_len = main_radius - 40
+
+        needle_func = getattr(self, f'_draw_{main_needle_style}', self._draw_sharp_needle)
+        tip_x = cx + main_needle_len * math.cos(main_needle_angle)
+        tip_y = cy + main_needle_len * math.sin(main_needle_angle)
+        needle_func(draw, cx, cy, tip_x, tip_y, main_needle_color, main_needle_width)
+        
+        draw.ellipse((cx - 8, cy - 8, cx + 8, cy + 8), fill=main_needle_color)
+
+        return img
+
+    def get_gauge_info(self) -> Dict:
+        """獲取所有指針的當前狀態信息"""
+        info = {}
+        for gauge_type in self.GAUGE_CONFIGS:
+            config = self.GAUGE_CONFIGS[gauge_type]
+            info[gauge_type] = {
+                "name": config["name"],
+                "current_index": int(self.animation_values[gauge_type]),
+                "target_index": self.target_values[gauge_type],
+                "current_value": self.get_value(gauge_type),
+                "total_values": len(config["values"]),
+                "all_values": config["values"]
+            }
+        return info
     
     def update_animation(self, dt: float = None):
         """
@@ -711,18 +883,166 @@ class RD1Gauge:
         
         return img
     
+    def _draw_specture_main_needle(self, draw, cx, cy, angle, length, color):
+        """ 繪製 Specture 風格的主指針 (粗、三角形) """
+        needle_width = 20
+        tip_x = cx + length * math.cos(angle)
+        tip_y = cy + length * math.sin(angle)
+
+        perp_angle = angle + math.pi / 2
+        base_x1 = cx + needle_width * math.cos(perp_angle)
+        base_y1 = cy + needle_width * math.sin(perp_angle)
+        base_x2 = cx - needle_width * math.cos(perp_angle)
+        base_y2 = cy - needle_width * math.sin(perp_angle)
+
+        draw.polygon([(tip_x, tip_y), (base_x1, base_y1), (base_x2, base_y2)], fill=color)
+
+    def _draw_specture_secondary_needle(self, draw, cx, cy, angle, length, color):
+        """ 繪製 Specture 風格的次要指針 (細線) """
+        tip_x = cx + length * math.cos(angle)
+        tip_y = cy + length * math.sin(angle)
+        draw.line([(cx, cy), (tip_x, tip_y)], fill=color, width=2)
+
+    def _draw_glowing_bezel(self, draw, cx, cy, radius, color, steps=10):
+        """ 繪製發光邊框 """
+        # This is a simplified version. For a real glow, you might need more advanced techniques
+        # like blurring, which is slow with PIL. This creates a basic gradient.
+        for i in range(steps):
+            alpha = int(100 * (1 - (i / steps))**2) # Reduced alpha for subtlety
+            bezel_color = color + (alpha,)
+            
+            # Create a temporary transparent layer for each ring
+            temp_img = Image.new('RGBA', (self.width, self.height), (0,0,0,0))
+            temp_draw = ImageDraw.Draw(temp_img)
+            
+            # Use a slightly larger box for drawing to avoid clipping
+            box = (cx - radius - i, cy - radius - i, cx + radius + i, cy + radius + i)
+            temp_draw.ellipse(box, outline=bezel_color, width=1)
+            
+            # Alpha composite the ring onto the main image
+            self.img.paste(temp_img, (0,0), temp_img)
+
+    def draw_specture_style_display(self) -> Image.Image:
+        """ 繪製 Specture 風格的整合儀表板 """
+        canvas_size = 480
+        # Update instance attributes for drawing
+        self.width = canvas_size
+        self.height = canvas_size
+        
+        self.img = Image.new("RGB", (canvas_size, canvas_size), (26, 26, 26)) # Charcoal background
+        draw = ImageDraw.Draw(self.img, 'RGBA')
+
+        cx = cy = canvas_size // 2
+        main_radius = 100 # Main dial radius
+
+        # --- Fonts ---
+        font_large = self._get_chinese_font(size=36, light=True)
+        font_medium = self._get_chinese_font(size=18, light=True)
+        font_small = self._get_chinese_font(size=14, light=True)
+
+        # --- Colors ---
+        BG_COLOR = (26, 26, 26)
+        MAIN_DIAL_BG = (235, 235, 235)
+        TEXT_COLOR = (220, 220, 220)
+        TEXT_COLOR_DARK = (50, 50, 50)
+        NEEDLE_COLOR_MAIN = (30, 30, 30)
+        NEEDLE_COLOR_SECONDARY = (255, 255, 255)
+        BEZEL_GLOW_COLOR = (150, 150, 170)
+        TICK_COLOR_MAIN = (100, 100, 100)
+        TICK_COLOR_SECONDARY = (180, 180, 180)
+
+        # --- Main Gauge (Center - SHOTS) ---
+        self._draw_glowing_bezel(draw, cx, cy, main_radius, BEZEL_GLOW_COLOR, steps=15)
+        draw.ellipse((cx - main_radius, cy - main_radius, cx + main_radius, cy + main_radius), fill=MAIN_DIAL_BG)
+
+        shots_config = self.GAUGE_CONFIGS["SHOTS"]
+        shots_values = shots_config["values"]
+        shots_num_values = len(shots_values)
+        
+        # Draw main gauge ticks
+        for i in range(shots_num_values * 4): # Add minor ticks
+            is_major_tick = (i % 4 == 0)
+            
+            angle_deg = -150 + (300 * i / (shots_num_values * 4 - 1))
+            angle = math.radians(angle_deg)
+            
+            if is_major_tick:
+                tick_start_r = main_radius - 15
+                tick_end_r = main_radius - 2
+                tick_width = 2
+            else:
+                tick_start_r = main_radius - 10
+                tick_end_r = main_radius - 2
+                tick_width = 1
+
+            draw.line([
+                (cx + tick_start_r * math.cos(angle), cy + tick_start_r * math.sin(angle)),
+                (cx + tick_end_r * math.cos(angle), cy + tick_end_r * math.sin(angle))
+            ], fill=TICK_COLOR_MAIN, width=tick_width)
+
+        # Main gauge text
+        draw.text((cx, cy + 20), "0", font=font_large, fill=TEXT_COLOR_DARK, anchor="ms")
+        draw.text((cx, cy + 55), "KM/H", font=font_small, fill=TEXT_COLOR_DARK, anchor="ms")
+
+
+        # --- Small Gauges ---
+        small_gauge_radius = 80
+        small_gauges_positions = {
+            "WB": (cx - 190, cy),
+            "QUALITY": (cx + 190, cy),
+        }
+
+        # Left Gauge (WB as Power Reserve)
+        gx, gy = small_gauges_positions["WB"]
+        self._draw_glowing_bezel(draw, gx, gy, small_gauge_radius, BEZEL_GLOW_COLOR, steps=10)
+        draw.ellipse((gx - small_gauge_radius, gy - small_gauge_radius, gx + small_gauge_radius, gy + small_gauge_radius), fill=BG_COLOR, outline=(80,80,80), width=1)
+        draw.text((gx, gy - 15), "100", font=font_medium, fill=TEXT_COLOR, anchor="ms")
+        draw.text((gx, gy + 5), "% POWER", font=font_small, fill=TEXT_COLOR, anchor="ms")
+        draw.text((gx, gy + 25), "RESERVE", font=font_small, fill=TEXT_COLOR, anchor="ms")
+        # WB Needle (as power needle)
+        wb_config = self.GAUGE_CONFIGS["WB"]
+        wb_index = self.animation_values["WB"]
+        wb_num_values = len(wb_config["values"])
+        power_angle = math.radians(-90 + (180 * wb_index / (wb_num_values - 1)))
+        self._draw_specture_secondary_needle(draw, gx, gy, power_angle, small_gauge_radius - 10, NEEDLE_COLOR_SECONDARY)
+
+        # Right Gauge (QUALITY as Range)
+        gx, gy = small_gauges_positions["QUALITY"]
+        self._draw_glowing_bezel(draw, gx, gy, small_gauge_radius, BEZEL_GLOW_COLOR, steps=10)
+        draw.ellipse((gx - small_gauge_radius, gy - small_gauge_radius, gx + small_gauge_radius, gy + small_gauge_radius), fill=BG_COLOR, outline=(80,80,80), width=1)
+        draw.text((gx, gy - 15), "520", font=font_medium, fill=TEXT_COLOR, anchor="ms")
+        draw.text((gx, gy + 5), "KM", font=font_small, fill=TEXT_COLOR, anchor="ms")
+        draw.text((gx, gy + 25), "RANGE", font=font_small, fill=TEXT_COLOR, anchor="ms")
+        # QUALITY Needle (as range needle)
+        quality_config = self.GAUGE_CONFIGS["QUALITY"]
+        quality_index = self.animation_values["QUALITY"]
+        quality_num_values = len(quality_config["values"])
+        range_angle = math.radians(-90 + (180 * quality_index / (quality_num_values - 1)))
+        self._draw_specture_secondary_needle(draw, gx, gy, range_angle, small_gauge_radius - 10, NEEDLE_COLOR_SECONDARY)
+
+
+        # --- Main Needle (SHOTS) ---
+        shots_index = self.animation_values["SHOTS"]
+        main_needle_angle = math.radians(-150 + (300 * shots_index / (shots_num_values - 1)))
+        self._draw_specture_main_needle(draw, cx, cy, main_needle_angle, main_radius - 20, NEEDLE_COLOR_MAIN)
+        draw.ellipse((cx - 12, cy - 12, cx + 12, cy + 12), fill=NEEDLE_COLOR_MAIN)
+
+        return self.img
+
     def draw_all_gauges(self, layout: str = "2x2") -> Image.Image:
         """
         繪製所有四個指針錶盤
         
         Args:
-            layout: 布局方式 ("2x2", "1x4", "4x1", "integrated")
+            layout: 布局方式 ("2x2", "1x4", "4x1", "integrated", "specture")
             
         Returns:
             PIL.Image: 組合圖像
         """
         if layout == "integrated":
             return self.draw_integrated_rd1_display()
+        if layout == "specture":
+            return self.draw_specture_style_display()
             
         background_color = (255, 255, 255)  # 白底
         
@@ -783,30 +1103,39 @@ class RD1Gauge:
         return info
 
 if __name__ == "__main__":
-    # 簡單測試
-    gauge = RD1Gauge()
+    output_dir = Path(__file__).parent
+    os.makedirs(output_dir, exist_ok=True)
+
+    # --- Test RD-1 Classic Style ---
+    print("Testing RD-1 Classic Style...")
+    gauge_rd1 = RD1Gauge(style='rd1_classic')
+    gauge_rd1.set_value("SHOTS", 2)
+    gauge_rd1.set_value("WB", 2)
+    gauge_rd1.set_value("BATTERY", 2)
+    gauge_rd1.set_value("QUALITY", 1)
     
-    # 設置一些測試值
-    gauge.set_value("SHOTS", 3)  # 指向 "50"
-    gauge.set_value("WB", 1)     # 指向 "☀"
-    gauge.set_value("BATTERY", 2) # 指向 "1/2"
-    gauge.set_value("QUALITY", 1) # 指向 "H"
-    
-    # 繪製單個錶盤
-    img = gauge.draw_gauge("SHOTS")
-    img.save("test_single_gauge.png")
-    print("測試圖像已保存為 test_single_gauge.png")
-    
-    # 繪製所有錶盤 (2x2布局)
-    all_img = gauge.draw_all_gauges("2x2")
-    all_img.save("test_all_gauges.png")
-    print("組合圖像已保存為 test_all_gauges.png")
-    
-    # 繪製整合 RD-1 風格錶盤
-    integrated_img = gauge.draw_all_gauges("integrated")
-    integrated_img.save("test_integrated_rd1.png")
-    print("RD-1整合錶盤已保存為 test_integrated_rd1.png")
-    
-    print("\n當前指針狀態:")
-    for gauge_type, info in gauge.get_gauge_info().items():
-        print(f"{info['name']}: {info['current_value']}")
+    for _ in range(60):
+        gauge_rd1.update_animation()
+        time.sleep(1/120)
+
+    img_rd1 = gauge_rd1.draw()
+    img_rd1.save(output_dir / "test_rd1_classic.png")
+    print(f"Saved {output_dir / 'test_rd1_classic.png'}")
+
+    # --- Test Specture Style ---
+    print("\nTesting Specture Style...")
+    gauge_specture = RD1Gauge(style='specture')
+    gauge_specture.set_value("SHOTS", 4)
+    gauge_specture.set_value("WB", 3)
+    gauge_specture.set_value("BATTERY", 1)
+    gauge_specture.set_value("QUALITY", 0)
+
+    for _ in range(60):
+        gauge_specture.update_animation()
+        time.sleep(1/120)
+
+    img_specture = gauge_specture.draw()
+    img_specture.save(output_dir / "test_specture.png")
+    print(f"Saved {output_dir / 'test_specture.png'}")
+
+

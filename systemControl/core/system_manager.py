@@ -15,7 +15,7 @@ try:
 except ImportError:
     ModeDial = None
 
-from settings import (
+from ..settings import (
     CameraSettings, 
     DisplaySettings, 
     DialSettings, 

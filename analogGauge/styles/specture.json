@@ -1,0 +1,26 @@
+{
+    "name": "Specture",
+    "background_color": "#1a1a1a",
+    "text_color": "#e6e6e6",
+    "font_regular": "msyhl.ttc",
+    "font_light": "msyhl.ttc",
+    "main_dial": {
+        "bg_color": "#ebebeb",
+        "outline_color": "#1a1a1a",
+        "tick_color": "#646464",
+        "text_color": "#1e1e1e",
+        "needle_style": "specture_main",
+        "needle_color": "#1e1e1e",
+        "needle_width": 20
+    },
+    "sub_dial": {
+        "bg_color": "#1a1a1a",
+        "outline_color": "#505050",
+        "tick_color": "#b4b4b4",
+        "text_color": "#e6e6e6",
+        "needle_style": "specture_secondary",
+        "needle_color": "#ffffff",
+        "needle_width": 2
+    },
+    "bezel_glow_color": "#9696aa"
+}

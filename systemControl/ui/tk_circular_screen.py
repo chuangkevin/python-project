@@ -20,6 +20,7 @@ import os
 import math
 import time
 import tkinter as tk
+from tkinter import ttk # Import ttk for themed widgets
 from typing import Callable, Dict, Any, Optional
 from pathlib import Path
 from PIL import ImageTk
@@ -80,7 +81,7 @@ class CircularScreenAPI:
     This is a concrete Tkinter implementation used for demos and integration tests.
     """
 
-    def __init__(self, master: tk.Tk, config: Dict[str, Any]):
+    def __init__(self, master: tk.Tk, config: Dict[str, Any], initial_style: str = 'rd1_classic'):
         self.master = master
         self.config = config
         # Normalize config.modes
@@ -96,11 +97,18 @@ class CircularScreenAPI:
         self.on_action: Optional[Callable[[str, Dict[str, Any]], None]] = None
 
         # UI Setup
-        self.width = 400
-        self.height = 400
+        self.width = 480 # Fixed size for the gauge display
+        self.height = 480
         self.canvas = tk.Canvas(master, width=self.width, height=self.height, bg='#111')
         self.canvas.pack()
+        
+        self._load_styles()
+        self.current_style = tk.StringVar(master)
+        self.current_style.set(initial_style) # Set initial style
+        self.current_style.trace('w', self._on_style_change)
+
         self._add_encoder_test_buttons(master)
+        self._add_style_switcher(master)
 
         # --- Gauge and UI State ---
         self.gauge = None
@@ -119,11 +127,12 @@ class CircularScreenAPI:
 
         if RD1Gauge is not None:
             try:
-                self.gauge = RD1Gauge(width=400, height=400, show_labels=False, reset_on_start=True)
+                self.gauge = RD1Gauge(width=self.width, height=self.height, style=self.current_style.get(), show_labels=False, reset_on_start=True)
                 self._setup_sub_dials()
             except Exception as e:
                 self.gauge = None
                 print(f"Failed to initialize RD1Gauge: {e}")
+                traceback.print_exc()
 
         # --- Animation Timing ---
         self._last_tick = time.time()
@@ -194,6 +203,39 @@ class CircularScreenAPI:
         r_frame.pack(fill='x', pady=(2, 12))
         tk.Button(r_frame, text="⟲ Rot CCW", command=lambda: self.handle_right_encoder_rotate(-1)).pack(side='left', expand=True)
         tk.Button(r_frame, text="Rot CW ⟳", command=lambda: self.handle_right_encoder_rotate(1)).pack(side='left', expand=True)
+
+    def _add_style_switcher(self, master):
+        style_frame = tk.Frame(master, bg='#111')
+        style_frame.pack(fill='x', pady=(2, 6))
+        tk.Label(style_frame, text="Select Style:", fg="white", bg="#111").pack(side='left', padx=5)
+        
+        self.style_combobox = ttk.Combobox(style_frame, textvariable=self.current_style, 
+                                           values=self.available_styles, state="readonly")
+        self.style_combobox.pack(side='left', expand=True, fill='x', padx=5)
+        self.style_combobox.bind('<<ComboboxSelected>>', self._on_style_change_event)
+
+    def _load_styles(self):
+        styles_dir = Path(__file__).parent.parent.parent / 'analogGauge' / 'styles'
+        self.available_styles = []
+        if styles_dir.is_dir():
+            for style_file in styles_dir.glob('*.json'):
+                self.available_styles.append(style_file.stem)
+        self.available_styles.sort()
+        if not self.available_styles:
+            print("Warning: No style files found in analogGauge/styles/")
+
+    def _on_style_change(self, *args):
+        selected_style = self.current_style.get()
+        if self.gauge:
+            try:
+                self.gauge.load_style(selected_style)
+                self._draw() # Redraw the gauge with the new style
+            except Exception as e:
+                print(f"Error loading style {selected_style}: {e}")
+                traceback.print_exc()
+
+    def _on_style_change_event(self, event):
+        pass
 
     def _setup_sub_dials(self):
         if not self.gauge: return
@@ -267,7 +309,7 @@ class CircularScreenAPI:
 
         if self.gauge:
             try:
-                img = self.gauge.draw_integrated_rd1_display()
+                img = self.gauge.draw()
                 self._tk_image = ImageTk.PhotoImage(img)
                 self.canvas.create_image(cx, cy, image=self._tk_image)
             except Exception as e:
@@ -316,7 +358,7 @@ def _demo():
     cfg = _load_config_direct()
     root = tk.Tk()
     root.title('Circular Screen Demo')
-    app = CircularScreenAPI(root, cfg)
+    app = CircularScreenAPI(root, cfg, initial_style='rd1_classic')
 
     def on_apply(mode_id, value):
         print(f'APPLY {mode_id} -> {value}')
