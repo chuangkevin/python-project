@@ -45,7 +45,7 @@
 
 ### 🎯 架構重構進度追蹤 
 - [x] **重大重構**: 從 React+FastAPI 改為 Python 單體應用 - ✅ **已完成**
-  - ✅ 創建 Python tkinter 測試 UI  
+  - ✅ UI 框架遷移至 PyQt/PySide (進行中)  
   - ✅ 統一設定管理系統
   - ✅ 硬體抽象層基礎架構
   - ✅ 狀態機整合
@@ -160,7 +160,7 @@ python-project/
 | 模組 | 狀態 | 功能完成度 | 備註 |
 |------|------|------------|------|
 | `systemControl/main.py` | ✅ 完成 | 100% | Python 單體應用入口 |
-| `systemControl/core/application.py` | ✅ 完成 | 90% | 主控制器含 tkinter UI |
+| `systemControl/core/application.py` | ✅ 完成 | 90% | 主控制器含 PyQt/PySide UI |
 | `systemControl/hardware/` | ✅ 完成 | 80% | 硬體抽象層 + 模擬器 |
 | `systemControl/settings/` | ✅ 完成 | 100% | 基礎設定系統，含軟片模擬 |
 | `analogGauge/` | ✅ 完成 | 100% | RD-1風格錶盤 |
