@@ -1,9 +1,15 @@
 """
 Tkinter-based circular screen skeleton that implements the CircularScreenAPI contract.
 
-This module loads `systemControl/config/circular_modes.json` via the existing
-`circular_mode_config` loader and provides a simple interactive demo. Use arrow
-keys to rotate (Left/Right) and Enter to press/select. Press M to cycle modes.
+This module provides a demo of the two-encoder UI. The controls are mapped
+to the keyboard for testing:
+
+- **Left Encoder (Mode):**
+  - Rotate: Up/Down Arrow Keys
+  - Press: Spacebar (resets to EV mode)
+
+- **Right Encoder (Value):**
+  - Rotate: Left/Right Arrow Keys
 
 Run with: python -m systemControl.ui.tk_circular_screen
 """
@@ -71,458 +77,233 @@ class CircularScreenAPI:
     def __init__(self, master: tk.Tk, config: Dict[str, Any]):
         self.master = master
         self.config = config
-        # Normalize config.modes which may be a mapping (id -> mode) or a list
+        # Normalize config.modes
         raw_modes = config.get('modes', {})
-        modes_list = []
-        if isinstance(raw_modes, dict):
-            for mid, m in raw_modes.items():
-                # ensure we don't mutate original
-                mm = dict(m)
-                mm.setdefault('id', mid)
-                modes_list.append(mm)
-        elif isinstance(raw_modes, list):
-            modes_list = [dict(m) for m in raw_modes]
-        else:
-            modes_list = []
-
+        modes_list = [dict(m, id=mid) for mid, m in raw_modes.items()]
         self.modes = {m['id']: m for m in modes_list}
         self.mode_ids = list(self.modes.keys())
         self.current_mode_index = 0
         self.current_mode_id = self.mode_ids[0] if self.mode_ids else None
 
+        # Callbacks
         self.on_apply: Optional[Callable[[str, Any], None]] = None
         self.on_action: Optional[Callable[[str, Dict[str, Any]], None]] = None
 
+        # UI Setup
         self.width = 400
         self.height = 400
-        self.radius = min(self.width, self.height) // 2 - 10
-
         self.canvas = tk.Canvas(master, width=self.width, height=self.height, bg='#111')
         self.canvas.pack()
+        self._add_encoder_test_buttons(master)
 
-        # Button frame for mouse users
-        btn_frame = tk.Frame(master, bg='#111')
-        btn_frame.pack(fill='x', pady=(6, 12))
-
-        btn_prev = tk.Button(btn_frame, text='⟵ Prev', command=lambda: self.rotate_encoder(-1))
-        btn_prev.pack(side='left', expand=True, padx=6)
-
-        btn_next = tk.Button(btn_frame, text='Next ⟶', command=lambda: self.rotate_encoder(1))
-        btn_next.pack(side='left', expand=True, padx=6)
-
-        btn_select = tk.Button(btn_frame, text='Select', command=lambda: self.press_encoder())
-        btn_select.pack(side='left', expand=True, padx=6)
-
-        btn_mode = tk.Button(btn_frame, text='Mode', command=lambda: self._cycle_mode())
-        btn_mode.pack(side='left', expand=True, padx=6)
-
-        # RD1Gauge instance for dial rendering (used in default/film modes)
+        # --- Gauge and UI State ---
         self.gauge = None
-        if RD1Gauge is not None:
-            try:
-                # For needle-centric UI hide labels
-                # Do NOT perform reset-on-start in the demo (prevents reset animation on each mode switch)
-                self.gauge = RD1Gauge(width=400, height=400, show_labels=False, reset_on_start=False)
-            except Exception:
-                self.gauge = None
-
-        # animation / rendering state
-        self._tk_image = None  # keep reference to PhotoImage
-        self._last_tick = time.time()
-        self._tick_interval_ms = 50  # 20 Hz
-
-        # film overlay config (milliseconds) - will be initialized per-mode
-        self.film_overlay_ms = 2000
-        self.film_fade_steps = 6
-        # overlay runtime state
-        self._overlay_id = None
-        self._overlay_text_id = None
-        self._overlay_active = False
-        self._overlay_text = None
-        self._overlay_fade_remaining = 0
-        self._overlay_stipple_index = 0
-        # small set of stipple patterns for a coarse fade (Tk doesn't support alpha on canvas)
-        self._overlay_stipples = ['gray12', 'gray25', 'gray50', 'gray75']
-        # hold/fade timer ids (so we can cancel when switching modes)
-        self._overlay_hold_id = None
-        self._overlay_fade_id = None
-        # restore-on-reset poll id (to restore real values after reset animation)
-        self._restore_poll_id = None
-        # apply any mode-specific overrides from the provided config
-        self._apply_mode_settings(self._current_mode())
-
-        # Start periodic tick
-        self.master.after(self._tick_interval_ms, self._tick)
-
-        self.center = (self.width // 2, self.height // 2)
-
-        # UI state
+        self._tk_image = None
         self.selected_index = 0
 
-        # Draw initial
+        # Status variables for fixed sub-dials
+        self.current_quality_index = 0
+        self.current_shots_index = 5
+        self.current_battery_index = 4
+
+        # Preview overlay state
+        self._preview_active = False
+        self._preview_text = ""
+        self._preview_timer = None
+
+        if RD1Gauge is not None:
+            try:
+                self.gauge = RD1Gauge(width=400, height=400, show_labels=False, reset_on_start=True)
+                self._setup_sub_dials()
+            except Exception as e:
+                self.gauge = None
+                print(f"Failed to initialize RD1Gauge: {e}")
+
+        # --- Animation Timing ---
+        self._last_tick = time.time()
+        self._tick_interval_ms = 20  # ~50 FPS
+
+        # --- Initial Setup ---
+        self.switch_mode(self.current_mode_id)
+        self.master.after(self._tick_interval_ms, self._tick)
+
+        # --- Key Bindings (for testing) ---
+        master.bind('<Up>', lambda e: self.handle_left_encoder_rotate(1))
+        master.bind('<Down>', lambda e: self.handle_left_encoder_rotate(-1))
+        master.bind('<Left>', lambda e: self.handle_right_encoder_rotate(-1))
+        master.bind('<Right>', lambda e: self.handle_right_encoder_rotate(1))
+        master.bind('<space>', lambda e: self.handle_left_encoder_press())
+
+    # --- Public API for Hardware ---
+
+    def handle_left_encoder_rotate(self, direction: int):
+        """Cycles through the main modes."""
+        self.current_mode_index = (self.current_mode_index + direction) % len(self.mode_ids)
+        next_mode_id = self.mode_ids[self.current_mode_index]
+        self.switch_mode(next_mode_id)
+
+    def handle_left_encoder_press(self):
+        """Resets the mode to Exposure Compensation ('ev')."""
+        self.switch_mode('ev')
+
+    def handle_right_encoder_rotate(self, direction: int):
+        """Adjusts the value within the current mode."""
+        mode = self._current_mode()
+        items = self._mode_items(mode)
+        if not items: return
+
+        self.selected_index = (self.selected_index + direction) % len(items)
+        title = mode.get('title', mode['id'])
+        value = items[self.selected_index]
+
+        if self.gauge:
+            self.gauge.set_value('SHOTS', self.selected_index)
+            if self.current_mode_id == 'quality':
+                self.gauge.set_value('WB', self.selected_index)
+        
+        self._start_preview(title, value)
         self._draw()
 
-        # Key bindings to simulate encoder
-        master.bind('<Left>', lambda e: self.rotate_encoder(-1))
-        master.bind('<Right>', lambda e: self.rotate_encoder(1))
-        master.bind('<Return>', lambda e: self.press_encoder())
-        master.bind('m', lambda e: self._cycle_mode())
+    # --- Internal Methods ---
 
-    # Callback registration
-    def set_on_apply(self, cb: Callable[[str, Any], None]):
-        self.on_apply = cb
+    def _add_encoder_test_buttons(self, master):
+        """Adds buttons to the UI to simulate the two-encoder hardware."""
+        top_frame = tk.Frame(master, bg='#111')
+        top_frame.pack(fill='x', pady=(6, 2))
+        tk.Label(top_frame, text="Left Encoder (Mode)", fg="white", bg="#111").pack()
 
-    def set_on_action(self, cb: Callable[[str, Dict[str, Any]], None]):
-        self.on_action = cb
+        l_frame = tk.Frame(master, bg='#111')
+        l_frame.pack(fill='x', pady=(2, 6))
+        tk.Button(l_frame, text="⟲ Rot CCW", command=lambda: self.handle_left_encoder_rotate(-1)).pack(side='left', expand=True)
+        tk.Button(l_frame, text="Press", command=self.handle_left_encoder_press).pack(side='left', expand=True)
+        tk.Button(l_frame, text="Rot CW ⟳", command=lambda: self.handle_left_encoder_rotate(1)).pack(side='left', expand=True)
 
-    # API methods
+        tk.Frame(master, height=2, bg="#444").pack(fill='x', padx=20, pady=10)
+
+        bot_frame = tk.Frame(master, bg='#111')
+        bot_frame.pack(fill='x', pady=(2, 6))
+        tk.Label(bot_frame, text="Right Encoder (Value)", fg="white", bg="#111").pack()
+        
+        r_frame = tk.Frame(master, bg='#111')
+        r_frame.pack(fill='x', pady=(2, 12))
+        tk.Button(r_frame, text="⟲ Rot CCW", command=lambda: self.handle_right_encoder_rotate(-1)).pack(side='left', expand=True)
+        tk.Button(r_frame, text="Rot CW ⟳", command=lambda: self.handle_right_encoder_rotate(1)).pack(side='left', expand=True)
+
+    def _setup_sub_dials(self):
+        if not self.gauge: return
+        self.quality_values = self.modes.get('quality', {}).get('values', ['RAW', 'JPG', 'R+J'])
+        self.gauge.configure_gauge_dynamic('WB', '品質', self.quality_values)
+        self.gauge.set_value('WB', self.current_quality_index)
+
+        original_shots_config = RD1Gauge.GAUGE_CONFIGS.get("SHOTS", {})
+        self.gauge.configure_gauge_dynamic('QUALITY', '張數', original_shots_config.get("values", []))
+        self.gauge.set_value('QUALITY', self.current_shots_index)
+
+        self.gauge.set_value('BATTERY', self.current_battery_index)
+
+    def set_on_apply(self, cb: Callable[[str, Any], None]): self.on_apply = cb
+    def set_on_action(self, cb: Callable[[str, Dict[str, Any]], None]): self.on_action = cb
+
     def switch_mode(self, mode_id: str):
-        if mode_id not in self.modes:
-            raise KeyError(f"Unknown mode_id: {mode_id}")
-        # If switching away from film mode, ensure any overlay/timers are canceled
-        if getattr(self, 'current_mode_id', None) == 'film' and mode_id != 'film':
-            try:
-                if getattr(self, '_overlay_hold_id', None):
-                    self.master.after_cancel(self._overlay_hold_id)
-            except Exception:
-                pass
-            try:
-                if getattr(self, '_overlay_fade_id', None):
-                    self.master.after_cancel(self._overlay_fade_id)
-            except Exception:
-                pass
-            # clear overlay state
-            self._overlay_active = False
-            self._overlay_text = None
-            self._overlay_fade_remaining = 0
-            self._overlay_stipple_index = 0
-            # ensure UI redraw
-            try:
-                self.canvas.delete('all')
-            except Exception:
-                pass
+        if mode_id not in self.modes: raise KeyError(f"Unknown mode_id: {mode_id}")
         self.current_mode_id = mode_id
         self.current_mode_index = self.mode_ids.index(mode_id)
         self.selected_index = 0
-        # apply mode-specific settings (so film can override overlay timings)
-        self._apply_mode_settings(self._current_mode())
-        # If switching into default mode, perform reset animation then restore values
-        if mode_id == 'default' and self.gauge is not None:
-            # save current intended targets so we can restore after reset
-            try:
-                saved_targets = {k: int(self.gauge.target_values.get(k, 0)) for k in self.gauge.GAUGE_CONFIGS}
-            except Exception:
-                saved_targets = {}
-            # trigger reset animation (max -> 0)
-            try:
-                self.gauge.reset()
-            except Exception:
-                pass
-
-            # cancel any existing restore poll
-            try:
-                if self._restore_poll_id:
-                    self.master.after_cancel(self._restore_poll_id)
-            except Exception:
-                pass
-
-            # start polling to detect when reset animation finished
-            def _poll_restore():
-                all_done = True
-                try:
-                    for g in self.gauge.GAUGE_CONFIGS:
-                        if getattr(self.gauge, '_anim_start_time', {}).get(g) is not None:
-                            all_done = False
-                            break
-                except Exception:
-                    all_done = True
-
-                if all_done:
-                    # restore saved targets
-                    try:
-                        for g, v in saved_targets.items():
-                            # use set_value to animate to desired value
-                            self.gauge.set_value(g, v)
-                    except Exception:
-                        pass
-                    return
-
-                # continue polling
-                self._restore_poll_id = self.master.after(self._tick_interval_ms, _poll_restore)
-
-            _poll_restore()
-        # If switching into film mode, show overlay first then let dial appear after hold+fade
-        if mode_id == 'film':
-            mode = self._current_mode()
-            items = self._mode_items(mode)
-            sel = str(items[self.selected_index]) if items else ''
-            self._start_overlay(sel)
-            return
-
-        self._draw()
-
-    def rotate_encoder(self, steps: int = 1):
+        
         mode = self._current_mode()
         items = self._mode_items(mode)
-        if not items:
-            return
-        self.selected_index = (self.selected_index + steps) % len(items)
+        title = mode.get('title', mode['id'])
+
+        if self.gauge:
+            self.gauge.configure_gauge_dynamic('SHOTS', title, items)
+            self.gauge.set_value('SHOTS', self.selected_index)
+            self.gauge.set_value('WB', self.current_quality_index)
+            self.gauge.set_value('QUALITY', self.current_shots_index)
+            self.gauge.set_value('BATTERY', self.current_battery_index)
+
+        self._start_preview(title, items[self.selected_index] if items else "N/A")
         self._draw()
-        # If we're in film mode, show overlay immediately on rotate
-        if mode.get('id') == 'film':
-            selected = items[self.selected_index]
-            self._start_overlay(str(selected))
+
     def press_encoder(self):
+        """This method is now for legacy/testing. The main press action is handle_left_encoder_press."""
         mode = self._current_mode()
         items = self._mode_items(mode)
         if not items:
-            # toggle behavior: call action for modes without items
-            if self.on_action:
-                self.on_action('press', {'mode': mode['id']})
+            if self.on_action: self.on_action('press', {'mode': mode['id']})
             return
-        selected = items[self.selected_index]
-        # If film mode, show overlay then return to dial after a short duration
-        if mode['id'] == 'film':
-            # call apply immediately then show overlay
-            if self.on_apply:
-                self.on_apply(mode['id'], selected)
-            self._start_overlay(str(selected))
-            return
+
+        selected_value = items[self.selected_index]
+
+        if self.current_mode_id == 'quality':
+            self.current_quality_index = self.selected_index
 
         if self.on_apply:
-            self.on_apply(mode['id'], selected)
-        # Visual feedback
+            self.on_apply(mode['id'], selected_value)
+        
         self._flash_selection()
 
     def update_from_state(self, state: Dict[str, Any]):
-        # For demo, respond to external state changes (e.g., current mode)
-        if 'mode' in state:
-            try:
-                self.switch_mode(state['mode'])
-            except KeyError:
-                pass
+        if not self.gauge: return
+        if 'battery' in state and state['battery'] != self.current_battery_index:
+            self.current_battery_index = state['battery']
+            self.gauge.set_value('BATTERY', self.current_battery_index)
 
-    def render(self):
-        self._draw()
+    def render(self): self._draw()
 
-    # Internal helpers
-    def _current_mode(self) -> Dict[str, Any]:
-        return self.modes[self.current_mode_id]
-
+    def _current_mode(self) -> Dict[str, Any]: return self.modes[self.current_mode_id]
     def _mode_items(self, mode: Dict[str, Any]):
-        # Modes may define `items` inline or `values` for numeric ranges; keep simple mapping
-        items = mode.get('items') or mode.get('values') or []
-        # If mode declares an items_source (external), the demo can't resolve app settings.
-        # Provide a small demo fallback so the film selector and overlay can show in the demo.
-        if not items and mode.get('items_source'):
-            # allow explicit demo items in config
-            demo = mode.get('demo_items')
-            if demo:
-                return list(demo)
-            # sensible defaults for a film selector demo
-            return ['Portra 400', 'Ektachrome', 'Tri-X 400', 'Ilford HP5']
-        return items
-
-    def _apply_mode_settings(self, mode: Dict[str, Any]):
-        """Apply per-mode overrides for overlay timing if present.
-
-        The mode dictionary may include `film_overlay_ms` and `film_fade_steps` to
-        override the demo defaults. If not present, fall back to global config keys
-        or existing instance defaults.
-        """
-        if not isinstance(mode, dict):
-            return
-        # per-mode override
-        if 'film_overlay_ms' in mode:
-            try:
-                self.film_overlay_ms = int(mode['film_overlay_ms'])
-            except Exception:
-                pass
-        elif 'film_overlay_ms' in self.config:
-            try:
-                self.film_overlay_ms = int(self.config.get('film_overlay_ms'))
-            except Exception:
-                pass
-
-        if 'film_fade_steps' in mode:
-            try:
-                self.film_fade_steps = int(mode['film_fade_steps'])
-            except Exception:
-                pass
-        elif 'film_fade_steps' in self.config:
-            try:
-                self.film_fade_steps = int(self.config.get('film_fade_steps'))
-            except Exception:
-                pass
+        return mode.get('values') or mode.get('demo_items', [])
 
     def _draw(self):
+        if not self.canvas or not self.master.winfo_exists(): return
         self.canvas.delete('all')
-        cx, cy = self.center
-        r = self.radius
+        cx, cy = self.width // 2, self.height // 2
 
-        # Outer circle
-        self.canvas.create_oval(cx-r, cy-r, cx+r, cy+r, fill='#222', outline='#555', width=4)
-
-        # Mode title
-        mode = self._current_mode()
-        title = mode.get('title', mode['id']).upper()
-        self.canvas.create_text(cx, cy - r + 30, text=title, fill='#fff', font=('Helvetica', 14, 'bold'))
-        # If an overlay is active (film preview), draw it exclusively and skip the dial/items.
-        # This guarantees the overlay is shown before any dial rendering and blocks the
-        # underlying dial while the hold+fade sequence runs.
-        if getattr(self, '_overlay_active', False) and getattr(self, '_overlay_text', None):
-            stip = getattr(self, '_overlay_stipples', None)
-            if stip:
-                st = stip[self._overlay_stipple_index]
-            else:
-                st = 'gray25'
-            self._overlay_id = self.canvas.create_oval(cx-120, cy-40, cx+120, cy+40, fill='#000', stipple=st, outline='')
-            self._overlay_text_id = self.canvas.create_text(cx, cy, text=self._overlay_text or '', fill='#fff', font=('Helvetica', 16, 'bold'))
-            return
-        # If in default mode, always render the RD1Gauge (needle-centric)
-        if self.current_mode_id == 'default' and self.gauge is not None:
+        if self.gauge:
             try:
-                now = time.time()
-                dt = now - self._last_tick if self._last_tick else None
-                self.gauge.update_animation(dt)
-                self._last_tick = now
                 img = self.gauge.draw_integrated_rd1_display()
                 self._tk_image = ImageTk.PhotoImage(img)
                 self.canvas.create_image(cx, cy, image=self._tk_image)
-            except Exception:
-                pass
-            return
+            except Exception as e:
+                self.canvas.create_text(cx, cy, text=f"""Error rendering gauge:\n{e}""", fill='red', font=('Helvetica', 10))
+        else:
+            self.canvas.create_text(cx, cy, text="RD1Gauge not available.", fill='yellow', font=('Helvetica', 12))
 
-        # If RD1Gauge not present, draw a simple placeholder needle so Default still shows
-        if self.current_mode_id == 'default' and self.gauge is None:
-            # Draw a simple needle pointing to a pseudo-value based on time
-            angle = (time.time() % 6.28)
-            nx = cx + int((r - 80) * math.cos(angle))
-            ny = cy + int((r - 80) * math.sin(angle))
-            self.canvas.create_line(cx, cy, nx, ny, fill='#f55', width=4)
-            self.canvas.create_oval(cx-6, cy-6, cx+6, cy+6, fill='#fff')
-            return
-            return
-
-        # (overlay handling is done above and returns early if active)
-
-        # Non-default modes: render item arc (or for film, when overlay not active show dial below)
-        # For film mode, when overlay not active we want to show the film selector
-        # items (rendered below) rather than the integrated dial. Do not draw the
-        # gauge here for film mode.
-
-        # Items list rendered around lower half of circle
-        items = self._mode_items(mode)
-        n = len(items)
-        if n == 0:
-            # Show short instruction
-            self.canvas.create_text(cx, cy, text=mode.get('hint', 'Press Enter'), fill='#ccc', font=('Helvetica', 12))
-            return
-
-        # arc start and sweep
-        start_angle = -120
-        sweep = 240
-        angle_step = sweep / max(1, n-1) if n > 1 else 0
-
-        for i, item in enumerate(items):
-            angle = math.radians(start_angle + i * angle_step)
-            ix = cx + int((r - 70) * math.cos(angle))
-            iy = cy + int((r - 70) * math.sin(angle))
-
-            name = str(item)
-            color = '#fff' if i == self.selected_index else '#9aa'
-            font = ('Helvetica', 12, 'bold') if i == self.selected_index else ('Helvetica', 11)
-            self.canvas.create_text(ix, iy, text=name, fill=color, font=font)
-
-        # Draw a small indicator for the selected item
-        sel_angle = math.radians(start_angle + self.selected_index * angle_step)
-        sx = cx + int((r - 30) * math.cos(sel_angle))
-        sy = cy + int((r - 30) * math.sin(sel_angle))
-        self.canvas.create_oval(sx-8, sy-8, sx+8, sy+8, fill='#0f0' if n else '#555')
+        if self._preview_active:
+            self.canvas.create_rectangle(cx - 120, cy - 25, cx + 120, cy + 25, fill="black", stipple="gray50", outline='#888', width=2)
+            self.canvas.create_text(cx, cy, text=self._preview_text, fill='#FFF', font=('Helvetica', 16, 'bold'))
         
     def _flash_selection(self):
-        # Simple visual flash when pressing
-        orig = self.canvas.itemcget('all', 'fill') if False else None
-        self.canvas.create_oval(self.center[0]-20, self.center[1]-20, self.center[0]+20, self.center[1]+20, outline='#0f0', width=3, tag='flash')
-        self.master.after(200, lambda: self.canvas.delete('flash'))
+        if not self.canvas or not self.master.winfo_exists(): return
+        border_id = self.canvas.create_oval(5, 5, self.width-5, self.height-5, outline='#0f0', width=4, tag='flash')
+        self.master.after(200, lambda: self.canvas.delete(border_id))
 
-    def _cycle_mode(self):
-        # Use switch_mode to ensure per-mode settings and film overlay behavior run
-        self.current_mode_index = (self.current_mode_index + 1) % len(self.mode_ids)
-        next_mode = self.mode_ids[self.current_mode_index]
-        self.switch_mode(next_mode)
+    def _start_preview(self, title: str, value: str):
+        if self._preview_timer:
+            self.master.after_cancel(self._preview_timer)
+        self._preview_text = f"{title}: {value}"
+        self._preview_active = True
+        self._preview_timer = self.master.after(1500, self._hide_preview)
 
-    # Film overlay helpers
-    def _show_film_overlay(self, text: str):
-        # Backwards-compatible small helper: use persistent overlay state
-        self._start_overlay(text)
-
-    def _fade_overlay(self, steps: int):
-        # Persistent overlay fade: when steps reach 0 hide overlay and redraw
-        # If overlay has been cancelled (e.g., mode switched), abort
-        if not getattr(self, '_overlay_active', False):
-            return
-        if steps <= 0:
-            self._overlay_active = False
-            self._overlay_text = None
-            self._overlay_fade_remaining = 0
-            # ensure canvas cleaned and redraw base
-            self.canvas.delete('all')
-            self._draw()
-            return
-
-        # schedule next fade step
-        self._overlay_fade_remaining = steps - 1
-        # pick a stipple based on remaining steps (coarse approximation)
-        idx = max(0, min(len(self._overlay_stipples)-1, int((steps / max(1, self.film_fade_steps)) * (len(self._overlay_stipples)-1))))
-        self._overlay_stipple_index = idx
-        # redraw to show faded overlay
+    def _hide_preview(self):
+        self._preview_active = False
+        self._preview_timer = None
         self._draw()
-        # schedule next fade step; store id so it can be cancelled if needed
-        self._overlay_fade_id = self.master.after(int(self._tick_interval_ms), lambda: self._fade_overlay(steps-1))
 
-    def _start_overlay(self, text: str):
-        # Cancel existing hold/fade timers
-        try:
-            if getattr(self, '_overlay_hold_id', None):
-                self.master.after_cancel(self._overlay_hold_id)
-                self._overlay_hold_id = None
-            if getattr(self, '_overlay_fade_id', None):
-                self.master.after_cancel(self._overlay_fade_id)
-                self._overlay_fade_id = None
-        except Exception:
-            pass
-
-        # Only start overlay if we are currently in film mode. This prevents
-        # stale timers or accidental calls from other modes (e.g., ISO) from
-        # showing the film preview UI.
-        if getattr(self, 'current_mode_id', None) != 'film':
-            return
-
-        self._overlay_active = True
-        self._overlay_text = text
-        self._overlay_fade_remaining = self.film_fade_steps
-        # force a redraw so overlay appears immediately
-        self._draw()
-        # schedule fade to start after hold duration
-        self._overlay_hold_id = self.master.after(int(self.film_overlay_ms), lambda: self._fade_overlay(self._overlay_fade_remaining))
-
-    # periodic tick to update gauge animation and re-render when required
     def _tick(self):
         try:
-            # update gauge animation if present
-            if self.gauge is not None:
+            if self.gauge:
                 now = time.time()
-                dt = now - self._last_tick if self._last_tick else None
+                dt = now - self._last_tick if hasattr(self, '_last_tick') and self._last_tick else (1/50.0)
                 self.gauge.update_animation(dt)
                 self._last_tick = now
-                # only re-render if currently in default mode
-                if self.current_mode_id == 'default':
-                    self._draw()
+                self._draw()
         except Exception:
             pass
         finally:
-            self.master.after(self._tick_interval_ms, self._tick)
+            if self.master.winfo_exists():
+                self.master.after(self._tick_interval_ms, self._tick)
+
 
 
 def _demo():

@@ -1,62 +1,82 @@
 {
   "modes": {
     "default": {
-      "display_type": "integrated_gauge",
-      "primary": "SHOTS",
-      "small_gauges": ["WB", "QUALITY", "BATTERY"],
-      "animation": { "needle_ease_ms": 280, "quantize_steps": 8 }
+      "title": "拍攝模式"
     },
-
-    "film": {
-      "display_type": "film_selector",
-      "items_source": "settings.film.available_presets",
-      "default_index": 0,
-      "film_overlay_ms": 2000,
-      "film_fade_steps": 6,
-      "secondary_control": {
-        "type": "slider",
-        "key": "film_strength",
-        "min": 0,
-        "max": 100,
-        "step": 1
-      }
+    "shutter": {
+      "title": "快門速度",
+      "values": ["AUTO", "1/8000", "1/4000", "1/2000", "1/1000", "1/500", "1/250", "1/125", "1/60", "1/30", "1/15", "1/8", "1/4", "1/2", "1", "2"]
     },
-
+    "ev": {
+      "title": "曝光補償",
+      "values": ["-3.0", "-2.7", "-2.3", "-2.0", "-1.7", "-1.3", "-1.0", "-0.7", "-0.3", "0.0", "+0.3", "+0.7", "+1.0", "+1.3", "+1.7", "+2.0", "+2.3", "+2.7", "+3.0"]
+    },
     "iso": {
-      "display_type": "numeric_big",
-      "values": [100, 200, 400, 800, 1600, 3200],
-      "default_index": 2,
-      "apply_control": { "action": "apply_iso", "api": "AnalogueGain" }
+      "title": "感光度",
+      "values": ["AUTO", "100", "200", "400", "800", "1600", "3200", "6400"]
     },
-
-    "wb": {
-      "display_type": "enum_list",
-      "values": ["Auto", "Sunny", "Cloud", "Shade", "Custom"],
-      "default_index": 0,
-      "custom_action": "whitecard_capture"
-    },
-
-    "quality": {
-      "display_type": "enum_list",
-      "values": ["BASIC", "FINE", "S.FINE", "RAW"],
-      "default_index": 1
-    },
-
-    "ratio": {
-      "display_type": "enum_list",
-      "values": ["3:2", "4:3", "16:9"],
-      "default_index": 0
-    },
-
     "focus": {
-      "display_type": "focus_control",
-      "values": ["single", "continuous", "manual"],
-      "default_index": 0
+      "title": "對焦模式",
+      "values": ["自動 (連續)", "自動 (單次)", "手動對焦"]
     },
-
-    "settings": {
-      "display_type": "settings_list",
-      "menu_id": "main"
+    "wb": {
+      "title": "白平衡",
+      "values": ["自動", "日光", "陰天", "陰影", "鎢絲燈", "螢光燈", "閃光燈", "自訂"]
+    },
+    "quality": {
+      "title": "影像品質",
+      "values": ["RAW", "JPG", "R+J"]
+    },
+    "hdr": {
+      "title": "HDR",
+      "values": ["關閉", "開啟"]
+    },
+    "film": {
+      "title": "色調模擬",
+      "items_source": "settings.film.available_presets",
+      "demo_items": [
+        "PROVIA",
+        "VELVIA",
+        "ASTIA",
+        "C.CHROME",
+        "PRO.NEG H",
+        "PRO.NEG S",
+        "C.NEG",
+        "ETERNA",
+        "ACROS",
+        "MONOCHROME",
+        "K.CHRM 64",
+        "K.CHRM 25",
+        "PORTRA 400",
+        "PORTRA 160",
+        "PORTRA 800",
+        "GOLD 200",
+        "ULTRAMAX 400",
+        "EKTAR 100",
+        "TRI-X 400",
+        "T-MAX 100",
+        "T-MAX 3200",
+        "C200",
+        "SUPERIA 400",
+        "SUPERIA 1600",
+        "NATURA 1600",
+        "REALA 100",
+        "REALA ACE",
+        "CINESTILL 800T",
+        "CINESTILL 400D",
+        "VISION3 250D",
+        "VISION3 500T",
+        "V.KODACHRM",
+        "NOSTALGIC.NEG",
+        "SUMMER '60",
+        "CALI SUMMER",
+        "PACIFIC BLUE",
+        "V.BRONZE",
+        "REDSCALE",
+        "X-PROCESS",
+        "BLEACH BYPASS",
+        "INFRARED BW"
+      ]
     }
   }
 }
