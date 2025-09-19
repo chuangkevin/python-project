@@ -263,4 +263,10 @@ camera.film_sim.debug = True
 - OpenCV 和 PIL 開源專案
 
 TODO: 
-https://www.fujifilm-x.com/global/products/film-simulation/
+- https://www.fujifilm-x.com/global/products/film-simulation/
+### UI
+    - 主螢幕UI
+        - https://dribbble.com/shots/26401049-Smart-Home-Dashboard
+        - https://dribbble.com/shots/25349747-JUMIA-Sales-Analytics-Dashboard
+    - analogGauge
+        - 加入alias、display text設計
