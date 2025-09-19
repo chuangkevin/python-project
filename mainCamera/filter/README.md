@@ -261,3 +261,6 @@ camera.film_sim.debug = True
 - Reddit r/fujifilm 社群提供的軟片模擬資料
 - Fujifilm 官方技術文件
 - OpenCV 和 PIL 開源專案
+
+TODO: 
+https://www.fujifilm-x.com/global/products/film-simulation/
