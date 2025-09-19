@@ -156,6 +156,10 @@ Thumbs.db
 !example*.jpg
 !rd-1_gauge.jpg
 
+# Allow committing film icon images used by the UI
+!mainCamera/filter/filmIcons/
+!mainCamera/filter/filmIcons/**
+
 # Temporary files
 *.tmp
 *.temp
