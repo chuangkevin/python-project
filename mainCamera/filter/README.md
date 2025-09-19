@@ -270,3 +270,7 @@ TODO:
         - https://dribbble.com/shots/25349747-JUMIA-Sales-Analytics-Dashboard
     - analogGauge
         - 加入alias、display text設計
+    - FilmSimulation
+        - 依照下列文件
+        D:\Projects\python-project\mainCamera\filter\preset\systemPreset\README.md
+        - 將D:\Projects\python-project\mainCamera\filter\preset\lightRoomSettings轉換
