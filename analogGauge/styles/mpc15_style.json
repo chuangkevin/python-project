@@ -1,0 +1,33 @@
+{
+    "name": "MPC15 Style",
+    "background_color": "#000000",
+    "text_color": "#FFFFFF",
+    "font_regular": "msyhl.ttc",
+    "font_light": "msyhl.ttc",
+    "main_dial": {
+        "bg_color": "#E0E0E0",
+        "outline_color": "#A0A0A0",
+        "tick_color": "#FFFFFF",
+        "text_color": "#FFFFFF",
+        "needle_style": "sharp",
+        "needle_color": "#FFFFFF",
+        "needle_width": 10,
+        "needleShadow": true,
+        "colorNeedleShadowUp": "#888888",
+        "colorNeedleShadowDown": "#555555"
+    },
+    "sub_dial": {
+        "arc_color": "#FFFFFF",
+        "tick_color": "#FFFFFF",
+        "text_color": "#FFFFFF",
+        "needle_style": "specture_secondary",
+        "needle_color": "#FFFFFF",
+        "needle_width": 2
+    },
+    "sub_dial_colors": {
+        "WB": "#1a1a1a",
+        "QUALITY": "#1a1a1a",
+        "BATTERY": "#1a1a1a"
+    },
+    "bezel_glow_color": "#333333"
+}
