@@ -1,19 +1,28 @@
-Circular Screen Tkinter Demo
-=================================
+Circular Screen PyQt Interface
+===============================
 
-This small demo demonstrates a Tkinter-based circular screen that loads
-`systemControl/config/circular_modes.json` and exposes a simple encoder-like
-interface.
+This module provides a PyQt-based circular screen that loads
+`systemControl/config/circular_modes.json` and exposes a dual-encoder
+interface with RD1Gauge integration.
 
 Controls:
-- Left / Right arrows: rotate selection
-- Enter: press / apply selected item
-- M: cycle to next mode
+- **Left Encoder (Mode):**
+  - Up/Down arrows: cycle through modes
+  - Spacebar: reset to EV mode
+- **Right Encoder (Value):**
+  - Left/Right arrows: adjust values within current mode
 
 Run:
 
 ```pwsh
-python -m systemControl.ui.tk_circular_screen
+python -m systemControl.ui.circular_screen
 ```
 
-The demo prints `APPLY` and `ACTION` messages to stdout when selections or actions occur.
+Features:
+- Real-time circular gauge display with animation
+- Style switching system (4 available styles)
+- Preview overlay for value changes
+- Complete RD1Gauge integration
+- Keyboard and button controls
+
+The interface prints `APPLY` and `ACTION` messages to stdout when selections or actions occur.

@@ -1,294 +1,144 @@
-# analogGauge# Epson RD-1 風格指針錶盤模組
+# analogGauge - Epson RD-1 風格指針錶盤模組
 
-## UI Redesign Plan (spectureGauge Style)
+高精度模擬 Epson RD-1 數位相機頂部的四個指針錶盤，提供整合式錶盤渲染和 PyQt 界面。
 
-根據 `spectureGauge.jpg` 的風格，計畫將儀表盤 UI 從目前的復古物理外觀更新為現代、簡約且帶有奢華感的數位儀表板風格。
-
-**關鍵風格特徵:**
-
-*   **主題:** 高對比度的深色主題，背景為深黑或炭灰色。
-*   **調色盤:** 主要使用白色和淺灰色來標示文字和刻度，取代目前的多色指針。
-*   **字體:** 採用乾淨、纖細的無襯線字體。
-*   **儀表盤:**
-    *   中央主儀表盤將使用淺米白/銀色背景。
-    *   次要儀表盤使用黑色背景。
-    *   所有儀表盤周圍將添加纖細且帶有光暈的邊框，以營造深度感。
-*   **指針:**
-    *   **主指針 (中央):** 改為粗壯、實心的三角形指針，帶有金屬質感。
-    *   **次要指針 (兩側):** 改為非常纖細、簡潔的白線。
-*   **效果:** 使用柔和的光暈和細微的漸變來創造精緻的數位感。
-
-此計畫將在不改變現有 `integrated` 佈局的前提下進行。
-
----
-
-簡要：本目錄包含 RD1-style 模擬儀表核心 (`rd1_gauge.py`)、一個靜態 runner (`run_integrated.py`) 與一個手動控制 GUI (`manual_control.py`)。glass overlay 已停用，舊資源被移到 `../archive/analogGauge_backup_*`。高精度模擬 Epson RD-1 數位相機頂部的四個指針錶盤，提供整合式錶盤渲染和獨立測試UI。
-
-
-## 更新紀錄 (最近)
-
-- 2025-09-17: 新增 `Reset on start` 勾選與 `Reset` 按鈕到 `manual_control.py`，可由 UI 或程式呼叫 `RD1Gauge.reset()` 觸發從最大值回歸到最小值的啟動動畫。
-- 2025-09-17: 調整動畫預設以獲得更自然的指針移動：`animation_rate` 預設調為 `5.0`，`_base_step_duration` 調為 `0.28`，啟動（max→min）動畫約 1.2–1.4 秒完成（視距離而定）。
-
-
-
-## 需求## 🎯 整合式錶盤系統
-
-- Python 3.8+
-
-- Pillow (`pip install pillow`)### 核心特色
-
-- Tkinter（Windows 預裝；Linux/macOS 需另行安裝系統套件）
+## 🎯 核心特色
 
 - **像素級精確復刻**：基於真實 RD-1 相機照片精確重現錶盤佈局
+- **超流暢動畫**：微步插值動畫系統，支援 120fps 更新
+- **整合式顯示**：四個錶盤完美整合在圓形顯示器中
+- **高品質渲染**：反鋸齒線條、精細刻度、專業色彩
+- **多風格支持**：4種內建風格主題
 
-## 快速使用- **超流暢 120fps 動畫**：微步插值動畫系統，8.3ms 更新間隔
+## 📦 組件架構
 
-- 生成靜態整合影像（runner）：- **整合式顯示**：四個錶盤完美整合在 240x240 圓形顯示器
+### 核心模組
+- `rd1_gauge.py` - 核心錶盤渲染引擎
+- `circular_screen.py` - PyQt 圓形界面組件（主要UI）
+- `manual_control.py` - PyQt 手動控制界面（調試工具）
 
-  - 在專案根目錄或任意位置執行：- **高品質渲染**：反鋸齒線條、精細刻度、專業色彩
+### 配置與資源
+- `styles/` - 風格主題配置文件
+- `examples/` - 使用範例（包含 tkinter 示例）
+- `sample/` - 範例輸出圖片
 
-    ```
+## 🚀 快速使用
 
-    python d:\Projects\python-project\analogGauge\run_integrated.py### 四個指針錶盤佈局
-
-    ```
-
-  - 會在 `analogGauge/` 產生 `integrated_output.png`。```text
-
-      [WB]           [QUALITY]
-
-- 啟動手動控制 GUI（推薦以 module 模式執行）：       90°             90°
-
-  - 在專案根目錄執行：    (左上角)        (右上角)
-
-    ```
-
-    python -m analogGauge.manual_control           [SHOTS]
-
-    ```            360°
-
-  - 或在 `analogGauge` 目錄執行：         (中央圓形)
-
-    ```
-
-    python .\manual_control.py         [BATTERY]
-
-    ```            90°
-
-  - GUI 提供滑桿調整 SHOTS/WB/BATTERY/QUALITY 與儲存影像功能。         (中下方)
-
-```
-
-## 程式化 API 範例
-
-```python### 錶盤規格
-
-from analogGauge.rd1_gauge import RD1Gauge
-
-- **SHOTS (拍攝數)**：360° 圓形錶盤，外圍刻度標示
-
-g = RD1Gauge(width=800, height=400)  - 數值：E → 10 → 20 → 50 → 100 → 500
-
-g.set_shots(0.5)          # 範例：設定數值- **WHITE BALANCE (白平衡)**：90° 扇形錶盤，左上角位置
-
-g.set_white_balance(0.3)  - 數值：A(自動) → ☀(晴天) → ⛅(多雲) → ☁(陰天) → 💡(白熾燈) → 💡(螢光燈)
-
-for _ in range(10):- **BATTERY (電池電量)**：90° 扇形錶盤，中下方位置，向上指向
-
-    g.update_animation()  # 平滑過渡/更新內部狀態  - 數值：E(空) → 1/4 → 1/2 → 3/4 → F(滿)
-
-img = g.draw_integrated_rd1_display()- **QUALITY (影像品質)**：90° 扇形錶盤，右上角位置
-
-img.save("example_output.png")  - 數值：R(RAW) → H(高品質JPEG) → N(一般JPEG)
-
-```
-
-## 🔧 技術架構
-
-## Archive / 還原
-
-- 舊的 glass overlay 與生成器已移到：### 核心檔案
-
-  `D:\Projects\python-project\archive\analogGauge_backup_<timestamp>\`
-
-- 若需要還原某檔案，請複製回 `analogGauge/`。若需要，我可以幫你還原並 commit。- **`rd1_gauge.py`** - RD1Gauge 核心類別
-
-  - 整合式錶盤渲染引擎
-
-## 注意事項  - 120fps 微步動畫系統
-
-- 若在 headless 或 CI 環境執行 GUI，會失敗（沒有圖形環境）。請使用 runner 或程式化 API 以產生影像。  - 無 UI 依賴的純圖像生成
-
-- 若在不同工作目錄執行時發生 import 錯誤，請使用 `python -m analogGauge.manual_control` 或確保父目錄在 `PYTHONPATH` 中。- **`test_integrated.py`** - 整合式錶盤完整測試
-
-- **`test_ui.py`** - 傳統 UI 測試介面
-- **`requirements.txt`** - 依賴套件清單
-
-### 動畫系統
-
-- **微步插值**：線性插值 + 微步進系統
-- **更新頻率**：120fps (8.3ms 間隔)
-- **反鋸齒渲染**：多層線條重疊技術
-- **流暢度**：支援即時數值變化無卡頓
-
-### 渲染特色
-
-- **像素級精確**：基於真實 RD-1 相機照片測量
-- **專業配色**：復古相機風格色彩方案
-- **高品質線條**：反鋸齒、多重採樣
-- **圓形顯示器最佳化**：240x240 完美適配
-
-## 🚀 快速開始
-
-### 安裝依賴
-
+### 作為獨立組件使用
 ```bash
-pip install -r requirements.txt
+# 啟動圓形界面
+python -m analogGauge.circular_screen
+
+# 啟動調試控制界面
+python -m analogGauge.manual_control
+
+# 生成靜態圖片
+python -m analogGauge.run_integrated
 ```
 
-### 基本使用
-
-```python
-from rd1_gauge import RD1Gauge
-
-# 創建整合式錶盤實例
-gauge = RD1Gauge()
-
-# 設定數值 (索引方式)
-gauge.set_value("SHOTS", 2)    # "20"
-gauge.set_value("WB", 1)       # "☀" (晴天)
-gauge.set_value("BATTERY", 3)  # "3/4"
-gauge.set_value("QUALITY", 1)  # "H" (高品質)
-
-# 更新動畫 (建議 120fps 循環調用)
-gauge.update_animation()
-
-# 生成整合錶盤圖像 (主要用法)
-img = gauge.draw_integrated_rd1_display()
-img.show()  # 或 img.save("rd1_display.png")
-```
-
-### 整合式錶盤測試
-
-```bash
-# 執行整合式錶盤完整測試
-python test_integrated.py
-
-# 執行傳統 UI 測試 (開發/調試用)
-python test_ui.py
-```
-
-## 範例：Windows toy (使用 analogGauge)
-
-在 `analogGauge/examples/windows_toy/` 中放了一個簡單的 Windows toy 範例，示範如何把 `RD1Gauge` 用在即時系統監控中（使用 `psutil`）。
-
-執行方式（套件模式，推薦）：
-
-```
-python -m analogGauge.examples.windows_toy.monitor_ui
-```
-
-或在 `analogGauge/examples/windows_toy/` 目錄直接執行：
-
-```
-python .\monitor_ui.py
-```
-
-注意：此範例需要 `psutil` 與 `Pillow` 已安裝，請先執行：
-
-```
-pip install psutil pillow
-```
-
-
-## 📋 API 參考
-
-### RD1Gauge 核心類別
-
-#### 主要方法
-
-- `set_value(gauge_type, value_index)` - 設定指針數值（索引）
-- `update_animation()` - 更新動畫狀態（120fps 調用）
-- `draw_integrated_rd1_display()` - **生成整合式錶盤圖像**
-- `get_gauge_info()` - 取得所有錶盤狀態資訊
-
-#### 錶盤類型常數
-
-- `"SHOTS"` - 剩餘拍攝數錶盤
-- `"WB"` - 白平衡錶盤  
-- `"BATTERY"` - 電池電量錶盤
-- `"QUALITY"` - 影像品質錶盤
-
-## 🔗 整合到主專案
-
-### 在樹莓派相機系統中使用
-
+### 作為模組導入
 ```python
 from analogGauge.rd1_gauge import RD1Gauge
-from gc9a01 import GC9A01
+from analogGauge.circular_screen import CircularScreenAPI
 
-# 初始化錶盤和圓形顯示器
-gauge = RD1Gauge()
-display = GC9A01(port=0, cs=0, dc=25, rst=24)
+# 創建錶盤
+gauge = RD1Gauge(style='rd1_classic')
+gauge.set_value('SHOTS', 2)
+gauge.set_value('BATTERY', 4)
 
-def update_display_from_camera_state():
-    """根據相機狀態更新錶盤顯示"""
-    # 取得相機狀態（你的實作）
-    shots = get_remaining_shots()    # 0-5 的索引
-    wb_mode = get_white_balance()    # 0-5 的索引
-    battery = get_battery_level()    # 0-4 的索引
-    quality = get_image_quality()    # 0-2 的索引
-    
-    # 更新錶盤數值
-    gauge.set_value("SHOTS", shots)
-    gauge.set_value("WB", wb_mode)
-    gauge.set_value("BATTERY", battery)
-    gauge.set_value("QUALITY", quality)
-    
-    # 生成並顯示整合式錶盤
-    img = gauge.draw_integrated_rd1_display()
-    display.display(img)
-
-# 在主迴圈中 120fps 調用
-while True:
-    gauge.update_animation()  # 流暢動畫
-    update_display_from_camera_state()
-    time.sleep(1/120)  # 8.3ms 間隔
+# 渲染圖片
+image = gauge.draw()
+image.save('output.png')
 ```
 
-## 📁 檔案結構
+## 🎨 風格主題
 
-```text
-analogGauge/
-├── rd1_gauge.py           # 核心錶盤渲染引擎
-├── test_integrated.py     # 整合式錶盤測試
-├── test_ui.py            # 傳統 UI 測試介面
-├── requirements.txt      # 依賴套件清單
-└── README.md            # 技術文檔
+- `rd1_classic` - 經典 RD-1 風格
+- `mpc15_style` - MPC15 主題
+- `specture_dark` - 深色現代風格
+- `specture_light` - 淺色現代風格
+
+## 🛠️ 需求
+
+- Python 3.8+
+- PyQt5 (`pip install PyQt5`)
+- Pillow (`pip install pillow`)
+
+## 📝 API 參考
+
+### RD1Gauge 類
+
+```python
+gauge = RD1Gauge(
+    width=480,           # 畫布寬度
+    height=480,          # 畫布高度
+    style='rd1_classic', # 風格主題
+    show_labels=True,    # 顯示標籤
+    reset_on_start=True  # 啟動重置動畫
+)
+
+# 設定指針值
+gauge.set_value('SHOTS', value)    # 剩餘拍攝數 (0-5)
+gauge.set_value('WB', value)       # 白平衡 (0-5)
+gauge.set_value('BATTERY', value)  # 電池電量 (0-4)
+gauge.set_value('QUALITY', value)  # 影像品質 (0-2)
+
+# 更新動畫
+gauge.update_animation(delta_time)
+
+# 渲染圖片
+image = gauge.draw()
 ```
 
-## ⚙️ 技術規格
+### CircularScreenAPI 類
 
-- **渲染引擎**: PIL (Pillow) 圖像處理
-- **動畫系統**: 120fps 微步插值
-- **顯示器支援**: 240x240 圓形 LCD 最佳化
-- **輸出格式**: RGB PIL Image 物件
-- **相依性**: 最小化依賴，無 UI 框架綁定
+```python
+from analogGauge.circular_screen import CircularScreenAPI
 
-## 🛠 開發工具
+# 創建界面
+api = CircularScreenAPI(config, initial_style='rd1_classic')
 
-### 測試程式
+# 設定回調
+api.set_on_apply(lambda mode, value: print(f'Applied: {mode}={value}'))
+api.set_on_action(lambda action, payload: print(f'Action: {action}'))
 
-- `test_integrated.py` - 專為整合式錶盤設計的完整測試
-- `test_ui.py` - 傳統 tkinter UI，適合開發調試
+# 模式控制
+api.switch_mode('ev')  # 切換到曝光補償模式
+api.handle_left_encoder_rotate(1)   # 左編碼器旋轉
+api.handle_right_encoder_rotate(1)  # 右編碼器旋轉
+```
 
-### 除錯建議
+## 🔧 整合到其他應用
 
-1. **動畫不流暢**: 確保 120fps 調用 `update_animation()`
-2. **顯示異常**: 檢查 PIL 版本 >= 10.0.0
-3. **記憶體問題**: 避免頻繁建立新 RD1Gauge 實例
+analogGauge 設計為獨立組件，可輕鬆整合到其他應用中：
 
-## 📄 授權
+```python
+# 在 systemControl 中使用
+from analogGauge.circular_screen import CircularScreenAPI as AnalogGaugeAPI
 
-MIT 授權條款 - 詳見專案根目錄 LICENSE 檔案。
+class MyApp(AnalogGaugeAPI):
+    def __init__(self, config):
+        super().__init__(config)
+        # 添加自定義功能
+
+    def integrate_with_system(self, system):
+        # 系統整合邏輯
+        pass
+```
+
+## 📈 更新紀錄
+
+### 2025-09-19 - PyQt 升級
+- ✅ 從 tkinter 遷移到 PyQt5，提供更好的視覺效果
+- ✅ 重構為獨立組件，移除 systemControl 依賴
+- ✅ 新增 `manual_control.py` PyQt 版本調試界面
+- ✅ 優化圖像渲染，解決 PIL-PyQt 兼容性問題
+
+### 2025-09-17 - 動畫系統優化
+- 新增 `Reset on start` 功能與 `Reset` 按鈕
+- 調整動畫預設：`animation_rate=5.0`，`_base_step_duration=0.28`
+- 啟動動畫約 1.2-1.4 秒完成
+
+## 📄 許可證
+
+此專案為內部開發使用。

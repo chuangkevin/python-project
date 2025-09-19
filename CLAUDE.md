@@ -21,10 +21,24 @@
   - `hardware/hardware_manager.py` - 硬體統一管理 ✅
 - **錯誤修復**: 解決了 tkinter import 和相機界面 import 路徑問題
 
-### 下一步
-1. 🎯 **急需**: 重新設計 Python 適用的相機控制界面
-2. 使用 MCP 工具 (Figma/21st.dev) 設計新 UI
-3. 或整合現有 `systemControl/UI_DESIGN_GUIDE.md` 中的 React 設計概念
+## 2025-09-19 UI框架升級完成
+
+### 重大更新
+- ✅ **UI框架**: 從 Tkinter → PyQt5 升級完成
+- ✅ **圓形界面**: 完整保留所有功能並優化顯示效果
+- ✅ **清理舊代碼**: 移除 tkinter 版本，統一使用 PyQt
+
+### 新UI特性
+- 🎨 **現代化界面**: PyQt5 提供更好的視覺效果
+- 🔄 **完整功能**: 雙編碼器控制、動畫、風格切換
+- ⚡ **穩定渲染**: 使用bytes buffer解決圖像轉換問題
+- 🎛️ **4種風格**: rd1_classic, mpc15_style, specture_dark, specture_light
+
+### 檔案變更
+- `systemControl/ui/circular_screen.py` - 主UI實現 (PyQt版本)
+- `systemControl/ui/tk_circular_screen.py` - 已刪除
+- `run_circular_ui.py` - 新的統一啟動腳本
+- `test_circular_ui.py` - 功能測試腳本
 
 ### 檔案狀態
 - MCP 配置已移到全域 (`~/.mcp.json`)
@@ -32,7 +46,17 @@
 - README.md 已更新反映 Python 單體架構
 
 ### 啟動指令
+
+**主應用**:
 ```bash
-cd D:\GitClone\python-project\systemControl
+cd D:\Projects\python-project\systemControl
 python main.py
+```
+
+**圓形UI界面**:
+```bash
+cd D:\Projects\python-project
+python -m systemControl.ui.circular_screen
+# 或使用啟動腳本
+python run_circular_ui.py
 ```

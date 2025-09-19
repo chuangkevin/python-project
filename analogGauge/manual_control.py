@@ -1,180 +1,223 @@
-import tkinter as tk
-from tkinter import ttk
-from PIL import Image, ImageTk
+"""
+PyQt版本的RD1Gauge手動控制界面
+用於調試和測試指針位置
+"""
+import sys
+from pathlib import Path
+from PIL import Image
+from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
+                            QHBoxLayout, QLabel, QSlider, QPushButton, QCheckBox,
+                            QFrame, QGridLayout)
+from PyQt5.QtCore import Qt, QTimer
+from PyQt5.QtGui import QPixmap
+
 try:
-    # When imported as package: analogGauge.manual_control
     from .rd1_gauge import RD1Gauge
-except Exception:
-    # When run as a script from the analogGauge directory
+except ImportError:
     from rd1_gauge import RD1Gauge
-import time
 
-class ManualControlApp:
-    def __init__(self, root: tk.Tk):
-        self.root = root
-        self.root.title("RD-1 Gauge Manual Control")
 
-        # Left frame: controls
-        ctrl_frame = ttk.Frame(root)
-        ctrl_frame.grid(row=0, column=0, sticky="ns", padx=8, pady=8)
+class GaugeDisplayWidget(QWidget):
+    """顯示RD1Gauge的PyQt widget"""
 
-        # Reset on start option (controls whether gauge does start->reset animation)
-        self.reset_var = tk.BooleanVar(value=True)
-        reset_chk = ttk.Checkbutton(ctrl_frame, text="Reset on start", variable=self.reset_var)
-        reset_chk.grid(row=0, column=0, sticky="w", pady=(0, 6))
+    def __init__(self, gauge_size=400):
+        super().__init__()
+        self.gauge_size = gauge_size
+        self.setFixedSize(gauge_size, gauge_size)
+        self.gauge = None
 
-        # Gauge (constructed after the reset option so we can pass the flag)
-        self.gauge = RD1Gauge(reset_on_start=self.reset_var.get())
+    def set_gauge(self, gauge):
+        self.gauge = gauge
+        self.update_display()
 
-        # Keep the gauge updated when the checkbox toggles (live binding)
-        try:
-            # modern tkinter
-            self.reset_var.trace_add("write", lambda *a: setattr(self.gauge, "reset_on_start", self.reset_var.get()))
-        except Exception:
-            # fallback
-            def _on_reset_var(*args):
-                setattr(self.gauge, "reset_on_start", self.reset_var.get())
-            self.reset_var.trace("w", _on_reset_var)
+    def update_display(self):
+        if self.gauge:
+            self.update()
 
-        # SHOTS
-        shots_max = len(self.gauge.GAUGE_CONFIGS["SHOTS"]["values"]) - 1
-        ttk.Label(ctrl_frame, text="SHOTS").grid(row=1, column=0)
-        self.shots_var = tk.IntVar(value=0)
-        shots_scale = ttk.Scale(ctrl_frame, from_=0, to=shots_max, orient="horizontal",
-                                command=self._on_shots_change, variable=self.shots_var)
-        shots_scale.grid(row=2, column=0, sticky="we")
+    def paintEvent(self, event):
+        if self.gauge:
+            try:
+                img = self.gauge.draw()
+                # Convert PIL to QPixmap via bytes buffer
+                import io
+                buffer = io.BytesIO()
+                img.save(buffer, format='PNG')
+                buffer.seek(0)
+                pixmap = QPixmap()
+                pixmap.loadFromData(buffer.getvalue())
 
-        # WB
-        wb_max = len(self.gauge.GAUGE_CONFIGS["WB"]["values"]) - 1
-        ttk.Label(ctrl_frame, text="WB").grid(row=3, column=0)
-        self.wb_var = tk.IntVar(value=0)
-        wb_scale = ttk.Scale(ctrl_frame, from_=0, to=wb_max, orient="horizontal",
-                             command=self._on_wb_change, variable=self.wb_var)
-        wb_scale.grid(row=4, column=0, sticky="we")
+                from PyQt5.QtGui import QPainter
+                painter = QPainter(self)
+                painter.drawPixmap(0, 0, pixmap)
+            except Exception as e:
+                print(f"Error rendering gauge: {e}")
 
-        # BATTERY
-        bat_max = len(self.gauge.GAUGE_CONFIGS["BATTERY"]["values"]) - 1
-        ttk.Label(ctrl_frame, text="BATTERY").grid(row=5, column=0)
-        self.bat_var = tk.IntVar(value=bat_max)
-        bat_scale = ttk.Scale(ctrl_frame, from_=0, to=bat_max, orient="horizontal",
-                              command=self._on_bat_change, variable=self.bat_var)
-        bat_scale.grid(row=6, column=0, sticky="we")
 
-        # QUALITY
-        q_max = len(self.gauge.GAUGE_CONFIGS["QUALITY"]["values"]) - 1
-        ttk.Label(ctrl_frame, text="QUALITY").grid(row=7, column=0)
-        self.q_var = tk.IntVar(value=0)
-        q_scale = ttk.Scale(ctrl_frame, from_=0, to=q_max, orient="horizontal",
-                            command=self._on_q_change, variable=self.q_var)
-        q_scale.grid(row=8, column=0, sticky="we")
+class ManualControlApp(QMainWindow):
+    """PyQt版本的手動控制應用"""
 
-        # Buttons
-        btn_frame = ttk.Frame(ctrl_frame)
-        btn_frame.grid(row=9, column=0, pady=(8, 0))
-        ttk.Button(btn_frame, text="Save Image", command=self._save_image).grid(row=0, column=0, padx=4)
-        ttk.Button(btn_frame, text="Toggle Labels", command=self._toggle_labels).grid(row=0, column=1, padx=4)
-        ttk.Button(btn_frame, text="Reset", command=lambda: self.gauge.reset()).grid(row=0, column=2, padx=4)
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("RD-1 Gauge Manual Control (PyQt)")
+        self.gauge = None
+        self.init_ui()
 
-        # Right frame: display
-        disp_frame = ttk.Frame(root)
-        disp_frame.grid(row=0, column=1, padx=8, pady=8)
+        # Animation timer
+        self.animation_timer = QTimer()
+        self.animation_timer.timeout.connect(self.update_animation)
+        self.animation_timer.start(50)  # 20 FPS
 
-        self.canvas_size = 400
-        self.canvas = tk.Canvas(disp_frame, width=self.canvas_size, height=self.canvas_size)
-        self.canvas.grid(row=0, column=0)
+    def init_ui(self):
+        central_widget = QWidget()
+        self.setCentralWidget(central_widget)
+        main_layout = QHBoxLayout(central_widget)
 
-        self.tk_image = None
-        self._last_update = time.time()
+        # Left panel: controls
+        controls_frame = QFrame()
+        controls_layout = QVBoxLayout(controls_frame)
 
-        # Ensure initial values set
-        self.gauge.set_value("SHOTS", int(0))
-        self.gauge.set_value("WB", int(0))
-        self.gauge.set_value("BATTERY", int(bat_max))
-        self.gauge.set_value("QUALITY", int(0))
+        # Reset on start checkbox
+        self.reset_checkbox = QCheckBox("Reset on start")
+        self.reset_checkbox.setChecked(True)
+        self.reset_checkbox.stateChanged.connect(self.on_reset_checkbox_changed)
+        controls_layout.addWidget(self.reset_checkbox)
 
-        # Prepare initial image on canvas and start update loop
-        init_img = self.gauge.draw_integrated_rd1_display()
-        self.tk_image = ImageTk.PhotoImage(init_img)
-        # create a single canvas image item and reuse it
-        self._canvas_image_id = self.canvas.create_image(0, 0, anchor="nw", image=self.tk_image)
+        # Initialize gauge
+        self.gauge = RD1Gauge(reset_on_start=self.reset_checkbox.isChecked())
 
-        self._running = True
-        self._update_loop()
+        # Sliders for each gauge
+        self.create_gauge_controls(controls_layout)
 
-        # Close handling
-        self.root.protocol("WM_DELETE_WINDOW", self._on_close)
+        # Action buttons
+        self.create_action_buttons(controls_layout)
 
-    def _on_shots_change(self, val):
-        try:
-            self.gauge.set_value("SHOTS", int(float(val)))
-        except Exception:
-            pass
+        controls_layout.addStretch()
+        main_layout.addWidget(controls_frame)
 
-    def _on_wb_change(self, val):
-        try:
-            self.gauge.set_value("WB", int(float(val)))
-        except Exception:
-            pass
+        # Right panel: gauge display
+        self.gauge_display = GaugeDisplayWidget(400)
+        self.gauge_display.set_gauge(self.gauge)
+        main_layout.addWidget(self.gauge_display)
 
-    def _on_bat_change(self, val):
-        try:
-            self.gauge.set_value("BATTERY", int(float(val)))
-        except Exception:
-            pass
+    def create_gauge_controls(self, layout):
+        """創建各個指針的控制滑桿"""
+        grid_layout = QGridLayout()
 
-    def _on_q_change(self, val):
-        try:
-            self.gauge.set_value("QUALITY", int(float(val)))
-        except Exception:
-            pass
+        self.sliders = {}
+        gauge_configs = self.gauge.GAUGE_CONFIGS
 
-    def _toggle_labels(self):
-        self.gauge.set_label_visibility(not self.gauge.get_label_visibility())
+        row = 0
+        for gauge_id, config in gauge_configs.items():
+            # Label
+            label = QLabel(f"{config['name']} ({gauge_id})")
+            grid_layout.addWidget(label, row, 0)
 
-    def _save_image(self):
-        img = self.gauge.draw_integrated_rd1_display()
-        path = "manual_control_output.png"
-        img.save(path)
-        print(f"Saved image to {path}")
+            # Slider
+            slider = QSlider(Qt.Horizontal)
+            slider.setMinimum(0)
+            slider.setMaximum(len(config['values']) - 1)
 
-    def _update_loop(self):
-        if not self._running:
-            return
-        # calculate dt based on real time so animation is time-consistent
-        now = time.time()
-        dt = now - self._last_update if self._last_update else (1.0/120.0)
-        self._last_update = now
+            # Set initial value
+            if gauge_id == "BATTERY":
+                slider.setValue(len(config['values']) - 1)  # Full battery
+            else:
+                slider.setValue(0)
 
-        # update animation and render (pass dt for time-based smoothing)
-        try:
-            self.gauge.update_animation(dt)
-        except TypeError:
-            # backward compatibility: some versions may not accept dt
+            slider.valueChanged.connect(lambda value, gid=gauge_id: self.on_slider_changed(gid, value))
+            grid_layout.addWidget(slider, row, 1)
+
+            # Value label
+            value_label = QLabel(config['values'][slider.value()])
+            grid_layout.addWidget(value_label, row, 2)
+
+            self.sliders[gauge_id] = {
+                'slider': slider,
+                'label': value_label,
+                'config': config
+            }
+
+            # Set initial gauge value
+            self.gauge.set_value(gauge_id, slider.value())
+
+            row += 1
+
+        layout.addLayout(grid_layout)
+
+    def create_action_buttons(self, layout):
+        """創建動作按鈕"""
+        button_layout = QHBoxLayout()
+
+        save_btn = QPushButton("Save Image")
+        save_btn.clicked.connect(self.save_image)
+        button_layout.addWidget(save_btn)
+
+        toggle_labels_btn = QPushButton("Toggle Labels")
+        toggle_labels_btn.clicked.connect(self.toggle_labels)
+        button_layout.addWidget(toggle_labels_btn)
+
+        reset_btn = QPushButton("Reset")
+        reset_btn.clicked.connect(self.reset_gauge)
+        button_layout.addWidget(reset_btn)
+
+        layout.addLayout(button_layout)
+
+    def on_slider_changed(self, gauge_id, value):
+        """滑桿值改變時的處理"""
+        self.gauge.set_value(gauge_id, value)
+
+        # Update value label
+        config = self.sliders[gauge_id]['config']
+        if value < len(config['values']):
+            self.sliders[gauge_id]['label'].setText(config['values'][value])
+
+    def on_reset_checkbox_changed(self, state):
+        """Reset checkbox狀態改變"""
+        if self.gauge:
+            # Recreate gauge with new reset setting
+            reset_on_start = state == Qt.Checked
+            self.gauge = RD1Gauge(reset_on_start=reset_on_start)
+            self.gauge_display.set_gauge(self.gauge)
+
+            # Restore slider values
+            for gauge_id, slider_info in self.sliders.items():
+                value = slider_info['slider'].value()
+                self.gauge.set_value(gauge_id, value)
+
+    def save_image(self):
+        """保存當前圖像"""
+        if self.gauge:
+            img = self.gauge.draw()
+            output_path = Path(__file__).parent / "manual_control_output.png"
+            img.save(output_path)
+            print(f"Image saved to {output_path}")
+
+    def toggle_labels(self):
+        """切換標籤顯示"""
+        if self.gauge:
+            self.gauge.show_labels = not self.gauge.show_labels
+
+    def reset_gauge(self):
+        """重置指針"""
+        if self.gauge:
+            self.gauge.reset()
+
+    def update_animation(self):
+        """更新動畫"""
+        if self.gauge:
             self.gauge.update_animation()
-        img = self.gauge.draw_integrated_rd1_display()
-
-        # convert to PhotoImage and update existing canvas image
-        self.tk_image = ImageTk.PhotoImage(img)
-        # update the existing canvas image to avoid creating many items
-        try:
-            self.canvas.itemconfig(self._canvas_image_id, image=self.tk_image)
-        except Exception:
-            # fallback: create image if item not present
-            self._canvas_image_id = self.canvas.create_image(0, 0, anchor="nw", image=self.tk_image)
-
-        # schedule next frame (~120fps => 8ms)
-        # Note: Windows timer resolution and Tkinter scheduling may limit actual FPS.
-        self.root.after(8, self._update_loop)
-
-    def _on_close(self):
-        self._running = False
-        self.root.destroy()
+            self.gauge_display.update_display()
 
 
 def main():
-    root = tk.Tk()
-    app = ManualControlApp(root)
-    root.mainloop()
+    """主函數"""
+    app = QApplication(sys.argv)
+    app.setStyle('Fusion')
+
+    window = ManualControlApp()
+    window.show()
+
+    sys.exit(app.exec_())
+
 
 if __name__ == '__main__':
     main()
