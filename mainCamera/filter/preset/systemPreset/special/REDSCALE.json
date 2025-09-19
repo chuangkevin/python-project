@@ -1,0 +1,106 @@
+{
+  "metadata": {
+    "name": "REDSCALE",
+    "description": "紅調特殊效果，模擬反向曝光軟片的紅橙色調",
+    "manufacturer": "Special Effect",
+    "category": "special",
+    "iso_range": [100, 800],
+    "icon": "REDSCALE.jpg",
+    "tags": ["特效", "紅調", "橙色", "實驗", "藝術"],
+    "version": "1.0",
+    "created": "2025-09-19",
+    "author": "system"
+  },
+  "processing": {
+    "tone_curve": {
+      "enabled": true,
+      "type": "vintage",
+      "gamma": 1.1,
+      "custom_points": null
+    },
+    "color_temperature": {
+      "enabled": true,
+      "temperature": 3200,
+      "tint": 15
+    },
+    "saturation": {
+      "enabled": true,
+      "global": 1.3,
+      "red": 1.5,
+      "green": 0.7,
+      "blue": 0.5,
+      "skin_protection": false
+    },
+    "contrast": {
+      "enabled": true,
+      "global": 0.9,
+      "shadows": 10,
+      "highlights": -10
+    },
+    "brightness": {
+      "enabled": true,
+      "gamma": 1.1,
+      "exposure": 0.2
+    },
+    "split_toning": {
+      "enabled": true,
+      "highlights": {
+        "hue": 30,
+        "saturation": 50,
+        "luminance": 0
+      },
+      "shadows": {
+        "hue": 15,
+        "saturation": 30,
+        "luminance": 0
+      },
+      "balance": 0.3,
+      "intensity": 0.8
+    },
+    "vintage_fade": {
+      "enabled": true,
+      "intensity": 0.4,
+      "lift_blacks": 0.4,
+      "compress_highlights": 0.3
+    },
+    "film_grain": {
+      "enabled": true,
+      "strength": 0.08,
+      "size": 1.3,
+      "roughness": 0.8
+    },
+    "color_grading": {
+      "enabled": true,
+      "shadows": [10, -5, -10],
+      "midtones": [20, 5, -15],
+      "highlights": [30, 10, -20]
+    },
+    "vignette": {
+      "enabled": true,
+      "intensity": 0.2,
+      "size": 0.7,
+      "feather": 0.3
+    }
+  },
+  "advanced": {
+    "skin_tone_protection": false,
+    "preserve_luminance": false,
+    "channel_mixing": {
+      "enabled": true,
+      "red": [0.8, 0.6, 0.4],
+      "green": [0.3, 0.8, 0.2],
+      "blue": [0.1, 0.2, 0.6]
+    },
+    "hsl_adjustments": {
+      "enabled": true,
+      "reds": {"hue": 10, "saturation": 50, "luminance": 10},
+      "oranges": {"hue": 5, "saturation": 40, "luminance": 5},
+      "yellows": {"hue": -5, "saturation": 20, "luminance": 0},
+      "greens": {"hue": 0, "saturation": -30, "luminance": -10},
+      "aquas": {"hue": 0, "saturation": -40, "luminance": -15},
+      "blues": {"hue": 0, "saturation": -50, "luminance": -20},
+      "purples": {"hue": 15, "saturation": -20, "luminance": -5},
+      "magentas": {"hue": 20, "saturation": 10, "luminance": 0}
+    }
+  }
+}

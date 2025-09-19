@@ -1,0 +1,106 @@
+{
+  "metadata": {
+    "name": "軟片名稱",
+    "description": "軟片描述",
+    "manufacturer": "廠商名稱",
+    "category": "color|bw|cinema|vintage|special",
+    "iso_range": [100, 800],
+    "icon": "對應圖標檔案名.jpg",
+    "tags": ["標籤1", "標籤2"],
+    "version": "1.0",
+    "created": "2025-09-19",
+    "author": "system"
+  },
+  "processing": {
+    "tone_curve": {
+      "enabled": true,
+      "type": "film|vintage|high_contrast|linear",
+      "gamma": 0.9,
+      "custom_points": null
+    },
+    "color_temperature": {
+      "enabled": true,
+      "temperature": 6500,
+      "tint": 0
+    },
+    "saturation": {
+      "enabled": true,
+      "global": 1.0,
+      "red": 1.0,
+      "green": 1.0,
+      "blue": 1.0,
+      "skin_protection": true
+    },
+    "contrast": {
+      "enabled": true,
+      "global": 1.0,
+      "shadows": 0.0,
+      "highlights": 0.0
+    },
+    "brightness": {
+      "enabled": true,
+      "gamma": 1.0,
+      "exposure": 0.0
+    },
+    "split_toning": {
+      "enabled": false,
+      "highlights": {
+        "hue": 0,
+        "saturation": 0,
+        "luminance": 0
+      },
+      "shadows": {
+        "hue": 0,
+        "saturation": 0,
+        "luminance": 0
+      },
+      "balance": 0.0,
+      "intensity": 0.3
+    },
+    "vintage_fade": {
+      "enabled": false,
+      "intensity": 0.3,
+      "lift_blacks": 0.3,
+      "compress_highlights": 0.4
+    },
+    "film_grain": {
+      "enabled": false,
+      "strength": 0.1,
+      "size": 1.0,
+      "roughness": 0.5
+    },
+    "color_grading": {
+      "enabled": false,
+      "shadows": [0, 0, 0],
+      "midtones": [0, 0, 0],
+      "highlights": [0, 0, 0]
+    },
+    "vignette": {
+      "enabled": false,
+      "intensity": 0.3,
+      "size": 0.8,
+      "feather": 0.2
+    }
+  },
+  "advanced": {
+    "skin_tone_protection": true,
+    "preserve_luminance": true,
+    "channel_mixing": {
+      "enabled": false,
+      "red": [1.0, 0.0, 0.0],
+      "green": [0.0, 1.0, 0.0],
+      "blue": [0.0, 0.0, 1.0]
+    },
+    "hsl_adjustments": {
+      "enabled": false,
+      "reds": {"hue": 0, "saturation": 0, "luminance": 0},
+      "oranges": {"hue": 0, "saturation": 0, "luminance": 0},
+      "yellows": {"hue": 0, "saturation": 0, "luminance": 0},
+      "greens": {"hue": 0, "saturation": 0, "luminance": 0},
+      "aquas": {"hue": 0, "saturation": 0, "luminance": 0},
+      "blues": {"hue": 0, "saturation": 0, "luminance": 0},
+      "purples": {"hue": 0, "saturation": 0, "luminance": 0},
+      "magentas": {"hue": 0, "saturation": 0, "luminance": 0}
+    }
+  }
+}

@@ -1,0 +1,106 @@
+{
+  "metadata": {
+    "name": "CLASSIC CHROME",
+    "description": "20世紀雜誌風格，低飽和度硬調，適合街拍和紀實攝影",
+    "manufacturer": "Fujifilm",
+    "category": "color",
+    "iso_range": [100, 1600],
+    "icon": "ClassicChrome.jpg",
+    "tags": ["街拍", "紀實", "復古", "低飽和", "硬調"],
+    "version": "1.0",
+    "created": "2025-09-19",
+    "author": "system"
+  },
+  "processing": {
+    "tone_curve": {
+      "enabled": true,
+      "type": "high_contrast",
+      "gamma": 1.05,
+      "custom_points": null
+    },
+    "color_temperature": {
+      "enabled": true,
+      "temperature": 6800,
+      "tint": -5
+    },
+    "saturation": {
+      "enabled": true,
+      "global": 0.75,
+      "red": 0.99,
+      "green": 1.0,
+      "blue": 1.02,
+      "skin_protection": true
+    },
+    "contrast": {
+      "enabled": true,
+      "global": 1.05,
+      "shadows": -5,
+      "highlights": 5
+    },
+    "brightness": {
+      "enabled": true,
+      "gamma": 1.0,
+      "exposure": 0.0
+    },
+    "split_toning": {
+      "enabled": false,
+      "highlights": {
+        "hue": 0,
+        "saturation": 0,
+        "luminance": 0
+      },
+      "shadows": {
+        "hue": 0,
+        "saturation": 0,
+        "luminance": 0
+      },
+      "balance": 0.0,
+      "intensity": 0.0
+    },
+    "vintage_fade": {
+      "enabled": false,
+      "intensity": 0.0,
+      "lift_blacks": 0.0,
+      "compress_highlights": 0.0
+    },
+    "film_grain": {
+      "enabled": true,
+      "strength": 0.05,
+      "size": 1.2,
+      "roughness": 0.7
+    },
+    "color_grading": {
+      "enabled": false,
+      "shadows": [0, 0, 0],
+      "midtones": [0, 0, 0],
+      "highlights": [0, 0, 0]
+    },
+    "vignette": {
+      "enabled": false,
+      "intensity": 0.0,
+      "size": 0.8,
+      "feather": 0.2
+    }
+  },
+  "advanced": {
+    "skin_tone_protection": true,
+    "preserve_luminance": true,
+    "channel_mixing": {
+      "enabled": false,
+      "red": [1.0, 0.0, 0.0],
+      "green": [0.0, 1.0, 0.0],
+      "blue": [0.0, 0.0, 1.0]
+    },
+    "hsl_adjustments": {
+      "enabled": true,
+      "reds": {"hue": 0, "saturation": -10, "luminance": 0},
+      "oranges": {"hue": 0, "saturation": -15, "luminance": 0},
+      "yellows": {"hue": 0, "saturation": -20, "luminance": 0},
+      "greens": {"hue": 0, "saturation": -10, "luminance": 0},
+      "aquas": {"hue": 0, "saturation": -10, "luminance": 0},
+      "blues": {"hue": 0, "saturation": -5, "luminance": 0},
+      "purples": {"hue": 0, "saturation": -10, "luminance": 0},
+      "magentas": {"hue": 0, "saturation": -15, "luminance": 0}
+    }
+  }
+}
