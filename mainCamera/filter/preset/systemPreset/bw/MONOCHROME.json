@@ -1,40 +1,40 @@
 {
   "metadata": {
-    "name": "CLASSIC CHROME",
-    "description": "低飽和、特別是紅綠色偏低，陰影對比較強，模擬式復古與紀實風格",
+    "name": "Monochrome",
+    "description": "中性色調黑白模式（無色濾鏡）．平衡但不如 Acros 那麼戲劇化",
     "manufacturer": "Fujifilm",
-    "category": "color",
-    "iso_range": [100, 1600],
-    "icon": "ClassicChrome.jpg",
-    "tags": ["街拍", "紀實", "復古", "低飽和", "硬調"],
+    "category": "bw",
+    "iso_range": [100, 6400],
+    "icon": "Monochrome.jpg",
+    "tags": ["黑白", "中性", "平衡"],
     "version": "1.0",
-    "created": "2025-09-19",
+    "created": "2025-09-22",
     "author": "system"
   },
   "processing": {
     "tone_curve": {
       "enabled": true,
-      "type": "vintage",
-      "gamma": 0.95,
+      "type": "linear",
+      "gamma": 1.0,
       "custom_points": null
     },
     "color_temperature": {
-      "enabled": true,
-      "temperature": 6800,
-      "tint": -5
+      "enabled": false,
+      "temperature": 6500,
+      "tint": 0
     },
     "saturation": {
       "enabled": true,
-      "global": 0.8,
-      "red": 0.7,
-      "green": 0.7,
-      "blue": 1.0,
-      "skin_protection": true
+      "global": 0.0,
+      "red": 0.0,
+      "green": 0.0,
+      "blue": 0.0,
+      "skin_protection": false
     },
     "contrast": {
       "enabled": true,
       "global": 1.0,
-      "shadows": 15,
+      "shadows": 0,
       "highlights": 0
     },
     "brightness": {
@@ -65,9 +65,9 @@
     },
     "film_grain": {
       "enabled": true,
-      "strength": 0.05,
-      "size": 1.2,
-      "roughness": 0.7
+      "strength": 0.03,
+      "size": 1.0,
+      "roughness": 0.6
     },
     "color_grading": {
       "enabled": false,
@@ -83,24 +83,24 @@
     }
   },
   "advanced": {
-    "skin_tone_protection": true,
+    "skin_tone_protection": false,
     "preserve_luminance": true,
     "channel_mixing": {
-      "enabled": false,
-      "red": [1.0, 0.0, 0.0],
-      "green": [0.0, 1.0, 0.0],
-      "blue": [0.0, 0.0, 1.0]
+      "enabled": true,
+      "red": [0.299, 0.299, 0.299],
+      "green": [0.587, 0.587, 0.587],
+      "blue": [0.114, 0.114, 0.114]
     },
     "hsl_adjustments": {
-      "enabled": true,
-      "reds": {"hue": 0, "saturation": -30, "luminance": 0},
-      "oranges": {"hue": 0, "saturation": -25, "luminance": 0},
-      "yellows": {"hue": 0, "saturation": -15, "luminance": 0},
-      "greens": {"hue": 0, "saturation": -30, "luminance": 0},
-      "aquas": {"hue": 0, "saturation": -15, "luminance": 0},
-      "blues": {"hue": 0, "saturation": -5, "luminance": 0},
-      "purples": {"hue": 0, "saturation": -15, "luminance": 0},
-      "magentas": {"hue": 0, "saturation": -20, "luminance": 0}
+      "enabled": false,
+      "reds": {"hue": 0, "saturation": 0, "luminance": 0},
+      "oranges": {"hue": 0, "saturation": 0, "luminance": 0},
+      "yellows": {"hue": 0, "saturation": 0, "luminance": 0},
+      "greens": {"hue": 0, "saturation": 0, "luminance": 0},
+      "aquas": {"hue": 0, "saturation": 0, "luminance": 0},
+      "blues": {"hue": 0, "saturation": 0, "luminance": 0},
+      "purples": {"hue": 0, "saturation": 0, "luminance": 0},
+      "magentas": {"hue": 0, "saturation": 0, "luminance": 0}
     }
   }
 }

@@ -1,0 +1,106 @@
+{
+  "metadata": {
+    "name": "Sepia",
+    "description": "褐色調模式，紅棕色系懷舊風格，帶有古照片感",
+    "manufacturer": "Fujifilm",
+    "category": "vintage",
+    "iso_range": [100, 3200],
+    "icon": "Sepia.jpg",
+    "tags": ["復古", "褐色調", "古照片", "懷舊"],
+    "version": "1.0",
+    "created": "2025-09-22",
+    "author": "system"
+  },
+  "processing": {
+    "tone_curve": {
+      "enabled": true,
+      "type": "vintage",
+      "gamma": 0.95,
+      "custom_points": null
+    },
+    "color_temperature": {
+      "enabled": true,
+      "temperature": 5800,
+      "tint": 8
+    },
+    "saturation": {
+      "enabled": true,
+      "global": 0.3,
+      "red": 0.8,
+      "green": 0.2,
+      "blue": 0.1,
+      "skin_protection": false
+    },
+    "contrast": {
+      "enabled": true,
+      "global": 0.95,
+      "shadows": 0,
+      "highlights": 0
+    },
+    "brightness": {
+      "enabled": true,
+      "gamma": 1.0,
+      "exposure": 0.0
+    },
+    "split_toning": {
+      "enabled": true,
+      "highlights": {
+        "hue": 35,
+        "saturation": 25,
+        "luminance": 0
+      },
+      "shadows": {
+        "hue": 30,
+        "saturation": 20,
+        "luminance": 0
+      },
+      "balance": 0.0,
+      "intensity": 0.8
+    },
+    "vintage_fade": {
+      "enabled": true,
+      "intensity": 0.2,
+      "lift_blacks": 0.1,
+      "compress_highlights": 0.05
+    },
+    "film_grain": {
+      "enabled": true,
+      "strength": 0.05,
+      "size": 1.2,
+      "roughness": 0.7
+    },
+    "color_grading": {
+      "enabled": true,
+      "shadows": [5, 0, -10],
+      "midtones": [10, 5, -15],
+      "highlights": [15, 10, -20]
+    },
+    "vignette": {
+      "enabled": true,
+      "intensity": 0.15,
+      "size": 0.6,
+      "feather": 0.4
+    }
+  },
+  "advanced": {
+    "skin_tone_protection": false,
+    "preserve_luminance": false,
+    "channel_mixing": {
+      "enabled": true,
+      "red": [0.393, 0.349, 0.272],
+      "green": [0.393, 0.349, 0.272],
+      "blue": [0.393, 0.349, 0.272]
+    },
+    "hsl_adjustments": {
+      "enabled": true,
+      "reds": {"hue": 0, "saturation": 0, "luminance": 0},
+      "oranges": {"hue": 0, "saturation": 0, "luminance": 0},
+      "yellows": {"hue": 0, "saturation": 0, "luminance": 0},
+      "greens": {"hue": 0, "saturation": 0, "luminance": 0},
+      "aquas": {"hue": 0, "saturation": 0, "luminance": 0},
+      "blues": {"hue": 0, "saturation": 0, "luminance": 0},
+      "purples": {"hue": 0, "saturation": 0, "luminance": 0},
+      "magentas": {"hue": 0, "saturation": 0, "luminance": 0}
+    }
+  }
+}

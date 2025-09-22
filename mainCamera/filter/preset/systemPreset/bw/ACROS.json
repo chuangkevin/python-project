@@ -1,0 +1,106 @@
+{
+  "metadata": {
+    "name": "ACROS",
+    "description": "從 NEOPAN ACROS 模擬來的黑白檔，有細膩的顆粒感與非常好的陰影細節",
+    "manufacturer": "Fujifilm",
+    "category": "bw",
+    "iso_range": [100, 6400],
+    "icon": "Acros.jpg",
+    "tags": ["黑白", "細膩", "陰影細節", "顆粒感"],
+    "version": "1.0",
+    "created": "2025-09-22",
+    "author": "system"
+  },
+  "processing": {
+    "tone_curve": {
+      "enabled": true,
+      "type": "film",
+      "gamma": 1.05,
+      "custom_points": null
+    },
+    "color_temperature": {
+      "enabled": false,
+      "temperature": 6500,
+      "tint": 0
+    },
+    "saturation": {
+      "enabled": true,
+      "global": 0.0,
+      "red": 0.0,
+      "green": 0.0,
+      "blue": 0.0,
+      "skin_protection": false
+    },
+    "contrast": {
+      "enabled": true,
+      "global": 1.1,
+      "shadows": 10,
+      "highlights": 5
+    },
+    "brightness": {
+      "enabled": true,
+      "gamma": 1.0,
+      "exposure": 0.0
+    },
+    "split_toning": {
+      "enabled": false,
+      "highlights": {
+        "hue": 0,
+        "saturation": 0,
+        "luminance": 0
+      },
+      "shadows": {
+        "hue": 0,
+        "saturation": 0,
+        "luminance": 0
+      },
+      "balance": 0.0,
+      "intensity": 0.0
+    },
+    "vintage_fade": {
+      "enabled": false,
+      "intensity": 0.0,
+      "lift_blacks": 0.0,
+      "compress_highlights": 0.0
+    },
+    "film_grain": {
+      "enabled": true,
+      "strength": 0.04,
+      "size": 0.8,
+      "roughness": 0.4
+    },
+    "color_grading": {
+      "enabled": false,
+      "shadows": [0, 0, 0],
+      "midtones": [0, 0, 0],
+      "highlights": [0, 0, 0]
+    },
+    "vignette": {
+      "enabled": false,
+      "intensity": 0.0,
+      "size": 0.8,
+      "feather": 0.2
+    }
+  },
+  "advanced": {
+    "skin_tone_protection": false,
+    "preserve_luminance": true,
+    "channel_mixing": {
+      "enabled": true,
+      "red": [0.299, 0.299, 0.299],
+      "green": [0.587, 0.587, 0.587],
+      "blue": [0.114, 0.114, 0.114]
+    },
+    "hsl_adjustments": {
+      "enabled": false,
+      "reds": {"hue": 0, "saturation": 0, "luminance": 0},
+      "oranges": {"hue": 0, "saturation": 0, "luminance": 0},
+      "yellows": {"hue": 0, "saturation": 0, "luminance": 0},
+      "greens": {"hue": 0, "saturation": 0, "luminance": 0},
+      "aquas": {"hue": 0, "saturation": 0, "luminance": 0},
+      "blues": {"hue": 0, "saturation": 0, "luminance": 0},
+      "purples": {"hue": 0, "saturation": 0, "luminance": 0},
+      "magentas": {"hue": 0, "saturation": 0, "luminance": 0}
+    }
+  }
+}

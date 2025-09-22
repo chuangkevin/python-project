@@ -103,8 +103,18 @@
       "items": [
         {"value": "PROVIA", "alias": "PRO", "displayText": "PROVIA (標準)"},
         {"value": "VELVIA", "alias": "VEL", "displayText": "VELVIA (風景)"},
+        {"value": "ASTIA", "alias": "AST", "displayText": "ASTIA (柔和)"},
         {"value": "CLASSIC_CHROME", "alias": "CHR", "displayText": "CLASSIC CHROME (復古)"},
+        {"value": "REALA_ACE", "alias": "ACE", "displayText": "REALA ACE (真實)"},
+        {"value": "PRO_NEG_HI", "alias": "P-H", "displayText": "PRO Neg. Hi (人像)"},
+        {"value": "PRO_NEG_STD", "alias": "P-S", "displayText": "PRO Neg. Std (柔和)"},
+        {"value": "CLASSIC_NEG", "alias": "C-N", "displayText": "CLASSIC Neg. (復古負片)"},
         {"value": "ETERNA", "alias": "ETN", "displayText": "ETERNA (電影)"},
+        {"value": "ETERNA_BLEACH_BYPASS", "alias": "EBB", "displayText": "ETERNA Bleach Bypass (戲劇)"},
+        {"value": "MONOCHROME", "alias": "B&W", "displayText": "Monochrome (黑白)"},
+        {"value": "ACROS", "alias": "ACR", "displayText": "ACROS (經典黑白)"},
+        {"value": "Nostalgic Neg.", "alias": "NOS", "displayText": "Nostalgic Neg. (懷舊)"},
+        {"value": "Sepia", "alias": "SEP", "displayText": "Sepia (褐色調)"},
         {"value": "KODACHROME_64", "alias": "K64", "displayText": "KODACHROME 64 (經典)"},
         {"value": "REDSCALE", "alias": "RED", "displayText": "REDSCALE (特效)"}
       ]

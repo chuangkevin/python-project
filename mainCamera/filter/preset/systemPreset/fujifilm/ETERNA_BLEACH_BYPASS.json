@@ -1,45 +1,45 @@
 {
   "metadata": {
-    "name": "CLASSIC CHROME",
-    "description": "低飽和、特別是紅綠色偏低，陰影對比較強，模擬式復古與紀實風格",
+    "name": "ETERNA Bleach Bypass",
+    "description": "漂白旁通風格，高對比低飽和，戲劇性強",
     "manufacturer": "Fujifilm",
-    "category": "color",
-    "iso_range": [100, 1600],
-    "icon": "ClassicChrome.jpg",
-    "tags": ["街拍", "紀實", "復古", "低飽和", "硬調"],
+    "category": "cinema",
+    "iso_range": [100, 3200],
+    "icon": "EternaBleachBypass.jpg",
+    "tags": ["電影", "漂白旁通", "高對比", "戲劇性"],
     "version": "1.0",
-    "created": "2025-09-19",
+    "created": "2025-09-22",
     "author": "system"
   },
   "processing": {
     "tone_curve": {
       "enabled": true,
-      "type": "vintage",
-      "gamma": 0.95,
+      "type": "high_contrast",
+      "gamma": 1.15,
       "custom_points": null
     },
     "color_temperature": {
       "enabled": true,
-      "temperature": 6800,
-      "tint": -5
+      "temperature": 6500,
+      "tint": -2
     },
     "saturation": {
       "enabled": true,
-      "global": 0.8,
-      "red": 0.7,
-      "green": 0.7,
-      "blue": 1.0,
-      "skin_protection": true
+      "global": 0.6,
+      "red": 0.65,
+      "green": 0.6,
+      "blue": 0.65,
+      "skin_protection": false
     },
     "contrast": {
       "enabled": true,
-      "global": 1.0,
+      "global": 1.3,
       "shadows": 15,
-      "highlights": 0
+      "highlights": 15
     },
     "brightness": {
       "enabled": true,
-      "gamma": 1.0,
+      "gamma": 1.05,
       "exposure": 0.0
     },
     "split_toning": {
@@ -65,9 +65,9 @@
     },
     "film_grain": {
       "enabled": true,
-      "strength": 0.05,
-      "size": 1.2,
-      "roughness": 0.7
+      "strength": 0.04,
+      "size": 1.0,
+      "roughness": 0.8
     },
     "color_grading": {
       "enabled": false,
@@ -83,7 +83,7 @@
     }
   },
   "advanced": {
-    "skin_tone_protection": true,
+    "skin_tone_protection": false,
     "preserve_luminance": true,
     "channel_mixing": {
       "enabled": false,
@@ -93,14 +93,14 @@
     },
     "hsl_adjustments": {
       "enabled": true,
-      "reds": {"hue": 0, "saturation": -30, "luminance": 0},
-      "oranges": {"hue": 0, "saturation": -25, "luminance": 0},
-      "yellows": {"hue": 0, "saturation": -15, "luminance": 0},
-      "greens": {"hue": 0, "saturation": -30, "luminance": 0},
-      "aquas": {"hue": 0, "saturation": -15, "luminance": 0},
-      "blues": {"hue": 0, "saturation": -5, "luminance": 0},
-      "purples": {"hue": 0, "saturation": -15, "luminance": 0},
-      "magentas": {"hue": 0, "saturation": -20, "luminance": 0}
+      "reds": {"hue": 0, "saturation": -40, "luminance": 0},
+      "oranges": {"hue": 0, "saturation": -35, "luminance": 0},
+      "yellows": {"hue": 0, "saturation": -30, "luminance": 0},
+      "greens": {"hue": 0, "saturation": -40, "luminance": 0},
+      "aquas": {"hue": 0, "saturation": -35, "luminance": 0},
+      "blues": {"hue": 0, "saturation": -35, "luminance": 0},
+      "purples": {"hue": 0, "saturation": -35, "luminance": 0},
+      "magentas": {"hue": 0, "saturation": -40, "luminance": 0}
     }
   }
 }
