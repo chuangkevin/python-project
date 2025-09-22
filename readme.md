@@ -236,3 +236,9 @@ python main.py
 
 ```
 - **硬體抽象**：GPIO/I2C/SPI統一管理，支援硬體切換
+
+ - 主螢幕UI
+        - https://dribbble.com/shots/26401049-Smart-Home-Dashboard
+        - https://dribbble.com/shots/25349747-JUMIA-Sales-Analytics-Dashboard
+    - analogGauge
+        - 加入alias、display text設計

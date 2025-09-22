@@ -265,11 +265,7 @@ camera.film_sim.debug = True
 TODO: 
 - https://www.fujifilm-x.com/global/products/film-simulation/
 ### UI
-    - 主螢幕UI
-        - https://dribbble.com/shots/26401049-Smart-Home-Dashboard
-        - https://dribbble.com/shots/25349747-JUMIA-Sales-Analytics-Dashboard
-    - analogGauge
-        - 加入alias、display text設計
+    
     - FilmSimulation
         - 依照下列文件
         D:\Projects\python-project\mainCamera\filter\preset\systemPreset\README.md
