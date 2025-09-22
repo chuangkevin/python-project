@@ -5,77 +5,108 @@
     },
     "shutter": {
       "title": "快門速度",
-      "values": ["AUTO", "1/8000", "1/4000", "1/2000", "1/1000", "1/500", "1/250", "1/125", "1/60", "1/30", "1/15", "1/8", "1/4", "1/2", "1", "2"]
+      "items": [
+        {"value": "AUTO", "alias": "A", "displayText": "自動快門"},
+        {"value": "1/8000", "alias": "8K", "displayText": "1/8000 秒"},
+        {"value": "1/4000", "alias": "4K", "displayText": "1/4000 秒"},
+        {"value": "1/2000", "alias": "2K", "displayText": "1/2000 秒"},
+        {"value": "1/1000", "alias": "1K", "displayText": "1/1000 秒"},
+        {"value": "1/500", "alias": "500", "displayText": "1/500 秒"},
+        {"value": "1/250", "alias": "250", "displayText": "1/250 秒"},
+        {"value": "1/125", "alias": "125", "displayText": "1/125 秒"},
+        {"value": "1/60", "alias": "60", "displayText": "1/60 秒"},
+        {"value": "1/30", "alias": "30", "displayText": "1/30 秒"},
+        {"value": "1/15", "alias": "15", "displayText": "1/15 秒"},
+        {"value": "1/8", "alias": "8", "displayText": "1/8 秒"},
+        {"value": "1/4", "alias": "1/4", "displayText": "1/4 秒"},
+        {"value": "1/2", "alias": "1/2", "displayText": "1/2 秒"},
+        {"value": "1", "alias": "1\"", "displayText": "1 秒"},
+        {"value": "2", "alias": "2\"", "displayText": "2 秒"}
+      ]
     },
     "ev": {
       "title": "曝光補償",
-      "values": ["-3.0", "-2.7", "-2.3", "-2.0", "-1.7", "-1.3", "-1.0", "-0.7", "-0.3", "0.0", "+0.3", "+0.7", "+1.0", "+1.3", "+1.7", "+2.0", "+2.3", "+2.7", "+3.0"]
+      "items": [
+        {"value": "-3.0", "alias": "-3", "displayText": "-3.0 EV"},
+        {"value": "-2.7", "alias": "-2.7", "displayText": "-2.7 EV"},
+        {"value": "-2.3", "alias": "-2.3", "displayText": "-2.3 EV"},
+        {"value": "-2.0", "alias": "-2", "displayText": "-2.0 EV"},
+        {"value": "-1.7", "alias": "-1.7", "displayText": "-1.7 EV"},
+        {"value": "-1.3", "alias": "-1.3", "displayText": "-1.3 EV"},
+        {"value": "-1.0", "alias": "-1", "displayText": "-1.0 EV"},
+        {"value": "-0.7", "alias": "-.7", "displayText": "-0.7 EV"},
+        {"value": "-0.3", "alias": "-.3", "displayText": "-0.3 EV"},
+        {"value": "0.0", "alias": "0", "displayText": "0.0 EV (標準)"},
+        {"value": "+0.3", "alias": "+.3", "displayText": "+0.3 EV"},
+        {"value": "+0.7", "alias": "+.7", "displayText": "+0.7 EV"},
+        {"value": "+1.0", "alias": "+1", "displayText": "+1.0 EV"},
+        {"value": "+1.3", "alias": "+1.3", "displayText": "+1.3 EV"},
+        {"value": "+1.7", "alias": "+1.7", "displayText": "+1.7 EV"},
+        {"value": "+2.0", "alias": "+2", "displayText": "+2.0 EV"},
+        {"value": "+2.3", "alias": "+2.3", "displayText": "+2.3 EV"},
+        {"value": "+2.7", "alias": "+2.7", "displayText": "+2.7 EV"},
+        {"value": "+3.0", "alias": "+3", "displayText": "+3.0 EV"}
+      ]
     },
     "iso": {
       "title": "感光度",
-      "values": ["AUTO", "100", "200", "400", "800", "1600", "3200", "6400"]
+      "items": [
+        {"value": "AUTO", "alias": "A", "displayText": "自動感光度"},
+        {"value": "100", "alias": "100", "displayText": "ISO 100"},
+        {"value": "200", "alias": "200", "displayText": "ISO 200"},
+        {"value": "400", "alias": "400", "displayText": "ISO 400"},
+        {"value": "800", "alias": "800", "displayText": "ISO 800"},
+        {"value": "1600", "alias": "1.6K", "displayText": "ISO 1600"},
+        {"value": "3200", "alias": "3.2K", "displayText": "ISO 3200"},
+        {"value": "6400", "alias": "6.4K", "displayText": "ISO 6400"}
+      ]
     },
     "focus": {
       "title": "對焦模式",
-      "values": ["自動 (連續)", "自動 (單次)", "手動對焦"]
+      "items": [
+        {"value": "AF-C", "alias": "AFC", "displayText": "自動對焦 (連續)"},
+        {"value": "AF-S", "alias": "AFS", "displayText": "自動對焦 (單次)"},
+        {"value": "MF", "alias": "MF", "displayText": "手動對焦"}
+      ]
     },
     "wb": {
       "title": "白平衡",
-      "values": ["自動", "日光", "陰天", "陰影", "鎢絲燈", "螢光燈", "閃光燈", "自訂"]
+      "items": [
+        {"value": "AUTO", "alias": "A", "displayText": "自動白平衡"},
+        {"value": "DAYLIGHT", "alias": "☀", "displayText": "日光 (5200K)"},
+        {"value": "CLOUDY", "alias": "⛅", "displayText": "陰天 (6000K)"},
+        {"value": "SHADE", "alias": "🌫", "displayText": "陰影 (7000K)"},
+        {"value": "TUNGSTEN", "alias": "💡", "displayText": "鎢絲燈 (3200K)"},
+        {"value": "FLUORESCENT", "alias": "💡", "displayText": "螢光燈 (4000K)"},
+        {"value": "FLASH", "alias": "⚡", "displayText": "閃光燈 (5400K)"},
+        {"value": "CUSTOM", "alias": "C", "displayText": "自訂白平衡"}
+      ]
     },
     "quality": {
       "title": "影像品質",
-      "values": ["RAW", "JPG", "R+J"]
+      "items": [
+        {"value": "RAW", "alias": "RAW", "displayText": "RAW格式 (未壓縮)"},
+        {"value": "JPEG", "alias": "JPG", "displayText": "JPEG格式 (壓縮)"},
+        {"value": "RAW+JPEG", "alias": "R+J", "displayText": "RAW + JPEG"}
+      ]
     },
     "hdr": {
       "title": "HDR",
-      "values": ["關閉", "開啟"]
+      "items": [
+        {"value": "OFF", "alias": "OFF", "displayText": "HDR 關閉"},
+        {"value": "ON", "alias": "HDR", "displayText": "HDR 開啟"}
+      ]
     },
     "film": {
       "title": "色調模擬",
-      "items_source": "settings.film.available_presets",
-      "demo_items": [
-        "PROVIA",
-        "VELVIA",
-        "ASTIA",
-        "C.CHROME",
-        "PRO.NEG H",
-        "PRO.NEG S",
-        "C.NEG",
-        "ETERNA",
-        "ACROS",
-        "MONOCHROME",
-        "K.CHRM 64",
-        "K.CHRM 25",
-        "PORTRA 400",
-        "PORTRA 160",
-        "PORTRA 800",
-        "GOLD 200",
-        "ULTRAMAX 400",
-        "EKTAR 100",
-        "TRI-X 400",
-        "T-MAX 100",
-        "T-MAX 3200",
-        "C200",
-        "SUPERIA 400",
-        "SUPERIA 1600",
-        "NATURA 1600",
-        "REALA 100",
-        "REALA ACE",
-        "CINESTILL 800T",
-        "CINESTILL 400D",
-        "VISION3 250D",
-        "VISION3 500T",
-        "V.KODACHRM",
-        "NOSTALGIC.NEG",
-        "SUMMER '60",
-        "CALI SUMMER",
-        "PACIFIC BLUE",
-        "V.BRONZE",
-        "REDSCALE",
-        "X-PROCESS",
-        "BLEACH BYPASS",
-        "INFRARED BW"
+      "items_source": "mainCamera.filter.preset_manager.FilmPresetManager",
+      "items": [
+        {"value": "PROVIA", "alias": "PRO", "displayText": "PROVIA (標準)"},
+        {"value": "VELVIA", "alias": "VEL", "displayText": "VELVIA (風景)"},
+        {"value": "CLASSIC_CHROME", "alias": "CHR", "displayText": "CLASSIC CHROME (復古)"},
+        {"value": "ETERNA", "alias": "ETN", "displayText": "ETERNA (電影)"},
+        {"value": "KODACHROME_64", "alias": "K64", "displayText": "KODACHROME 64 (經典)"},
+        {"value": "REDSCALE", "alias": "RED", "displayText": "REDSCALE (特效)"}
       ]
     }
   }

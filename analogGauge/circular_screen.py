@@ -289,14 +289,14 @@ class CircularScreenAPI(QMainWindow):
 
         self.selected_index = (self.selected_index + direction) % len(items)
         title = mode.get('title', mode['id'])
-        value = items[self.selected_index]
+        display_text = self._get_item_display_text(mode, self.selected_index)
 
         if self.gauge:
             self.gauge.set_value('SHOTS', self.selected_index)
             if self.current_mode_id == 'quality':
                 self.gauge.set_value('WB', self.selected_index)
 
-        self._start_preview(title, value)
+        self._start_preview(title, display_text)
 
     # --- Internal Methods ---
 
@@ -385,7 +385,10 @@ class CircularScreenAPI(QMainWindow):
     def _setup_sub_dials(self):
         """Setup sub-dials."""
         if not self.gauge: return
-        self.quality_values = self.modes.get('quality', {}).get('values', ['RAW', 'JPG', 'R+J'])
+
+        # Get quality mode and extract display values
+        quality_mode = self.modes.get('quality', {})
+        self.quality_values = self._mode_items(quality_mode)
         self.gauge.configure_gauge_dynamic('WB', '品質', self.quality_values)
         self.gauge.set_value('WB', self.current_quality_index)
 
@@ -415,7 +418,8 @@ class CircularScreenAPI(QMainWindow):
             self.gauge.set_value('QUALITY', self.current_shots_index)
             self.gauge.set_value('BATTERY', self.current_battery_index)
 
-        self._start_preview(title, items[self.selected_index] if items else "N/A")
+        display_text = self._get_item_display_text(mode, self.selected_index)
+        self._start_preview(title, display_text)
 
     def press_encoder(self):
         """This method is now for legacy/testing. The main press action is handle_left_encoder_press."""
@@ -425,7 +429,7 @@ class CircularScreenAPI(QMainWindow):
             if self.on_action: self.on_action('press', {'mode': mode['id']})
             return
 
-        selected_value = items[self.selected_index]
+        selected_value = self._get_item_value(mode, self.selected_index)
 
         if self.current_mode_id == 'quality':
             self.current_quality_index = self.selected_index
@@ -447,7 +451,45 @@ class CircularScreenAPI(QMainWindow):
 
     def _current_mode(self) -> Dict[str, Any]: return self.modes[self.current_mode_id]
     def _mode_items(self, mode: Dict[str, Any]):
+        """Get mode items, supporting both old format (values) and new format (items with alias/displayText)"""
+        # New format with items containing value, alias, displayText
+        if 'items' in mode:
+            items = mode['items']
+            # For gauge display, use alias if available, otherwise value
+            return [item.get('alias', item.get('value', str(item))) for item in items]
+
+        # Legacy format with simple values array
         return mode.get('values') or mode.get('demo_items', [])
+
+    def _get_item_display_text(self, mode: Dict[str, Any], index: int) -> str:
+        """Get display text for item at given index"""
+        if 'items' in mode:
+            items = mode['items']
+            if 0 <= index < len(items):
+                item = items[index]
+                return item.get('displayText', item.get('value', str(item)))
+
+        # Legacy format - just return the value
+        items = mode.get('values') or mode.get('demo_items', [])
+        if 0 <= index < len(items):
+            return items[index]
+
+        return "N/A"
+
+    def _get_item_value(self, mode: Dict[str, Any], index: int) -> str:
+        """Get actual value for item at given index (for backend communication)"""
+        if 'items' in mode:
+            items = mode['items']
+            if 0 <= index < len(items):
+                item = items[index]
+                return item.get('value', str(item))
+
+        # Legacy format - just return the value
+        items = mode.get('values') or mode.get('demo_items', [])
+        if 0 <= index < len(items):
+            return items[index]
+
+        return "N/A"
 
     def _flash_selection(self):
         """Flash a green border to indicate selection."""
