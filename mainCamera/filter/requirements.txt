@@ -1,21 +1,13 @@
-# Fujifilm 軟片模擬系統相依套件
+# 軟片模擬預設管理系統依賴
+# Film Simulation Preset Manager Dependencies
 
 # 核心圖像處理
-opencv-python>=4.5.0
-numpy>=1.19.0
-Pillow>=8.0.0
+opencv-python>=4.8.0
+Pillow>=10.0.0
+numpy>=1.24.0
 
-# Web 應用程式
-Flask>=2.0.0
-Werkzeug>=2.0.0
+# GUI界面 (可選)
+PyQt5>=5.15.0
 
-# 可選套件 (用於進階功能)
-matplotlib>=3.3.0  # 用於圖表和分析
-scikit-image>=0.18.0  # 進階圖像處理
-
-# Raspberry Pi 相關 (如果在 RPi 上運行)
-# picamera2  # RPi 5 相機模組
-# RPi.GPIO   # GPIO 控制
-
-# 檔案格式支援
-imageio>=2.9.0
+# JSON處理 (Python內建，無需額外安裝)
+# pathlib (Python內建，無需額外安裝)

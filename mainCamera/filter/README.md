@@ -25,11 +25,20 @@
 
 ```
 mainCamera/filter/
-├── film_simulation.py      # 核心軟片模擬引擎
-├── film_simulation_demo.py # 測試與示範程式
-├── rd1_integration.py      # RD-1 系統整合模組
-├── requirements.txt        # 相依套件清單
-└── README.md              # 說明文件 (本檔案)
+├── preset_manager.py           # 🆕 模組化預設管理器
+├── preset_ui.py               # 🆕 PyQt5 圖形界面
+├── preset/                    # 🆕 JSON 預設檔案庫
+│   └── systemPreset/          # 系統軟片預設
+│       ├── fujifilm/          # Fujifilm 軟片系列
+│       ├── kodak/             # Kodak 軟片系列
+│       ├── cinema/            # 電影膠片系列
+│       ├── vintage/           # 復古風格系列
+│       ├── bw/                # 黑白軟片系列
+│       └── special/           # 特殊效果系列
+├── filmIcons/                 # 📸 軟片圖標資源
+├── legacy/                    # 舊版代碼歸檔
+├── requirements.txt           # 相依套件清單
+└── README.md                 # 說明文件 (本檔案)
 ```
 
 ## 🚀 快速開始
@@ -44,21 +53,21 @@ pip install -r requirements.txt
 ### 2. 基本使用
 
 ```python
-from rd1_integration import RD1CameraIntegration
+from preset_manager import FilmPresetManager
 
-# 建立相機整合系統
-camera = RD1CameraIntegration()
+# 建立預設管理器
+manager = FilmPresetManager()
 
-# 切換軟片模擬
-current_sim = camera.cycle_film_simulation("next")
-print(f"當前軟片: {current_sim['name']}")
+# 列出所有預設
+presets = manager.list_presets()
+print(f"找到 {len(presets)} 個預設")
 
-# 取得錶盤顯示值
-gauge_value = camera.get_rd1_gauge_value()
-print(f"錶盤顯示: {gauge_value}")
+# 使用特定預設處理圖像
+processor = manager.create_processor('PROVIA')
+result = processor.process_image('input.jpg')
 
-# 拍照並套用軟片模擬
-# output_path = camera.take_photo_with_simulation(image_data)
+# 啟動圖形界面
+python preset_ui.py
 ```
 
 ### 3. 與 RD-1 錶盤系統整合
