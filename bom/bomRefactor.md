@@ -9,50 +9,71 @@
 ## 控制模組
 
 ### 1. 主要控制按鈕
+
 - 產品: 五向導航按鍵開關模組 5D搖桿
 - 型號: HU071
 - 功能: 方向控制 + 功能鍵
 - 價格: ¥3.40
-- 連結: https://e.tb.cn/h.hBkxWej?tk=LPtD4LhKCky
+- 連結: [淘宝 HU071 五向導航按鍵](https://e.tb.cn/h.hBkxWej?tk=LPtD4LhKCky)
 
 ### 2. 快門按鈕
+
 - 產品: 台灣進口兩段式快門按鈕
 - 型號: CZ225
 - 功能: 半按對焦 + 全按快門
 - 規格: 二檔超薄手電側雙節電動牙刷相機開關
 - 價格: ¥2.60
-- 連結: https://e.tb.cn/h.hywJXtoBqRRAmuA?tk=mUe64LSutWA
+- 連結: [淘宝 CZ225 快門按鈕](https://e.tb.cn/h.hywJXtoBqRRAmuA?tk=mUe64LSutWA)
 
 ### 3. 上方旋鈕
-產品: EC28中空編碼器模組旋鈕 * 2（上方旋鈕、對焦旋鈕）
-型號: MF168
-功能: 空心旋轉開關
-規格: 小家電智能家居開關直銷
-價格: ¥5.00 x 2
-連結: [淘宝 EC28中空编码器模组旋钮](https://e.tb.cn/h.hyxkUMaRpBBe8c1?tk=BgXh4LoVjfU)
+
+- 產品: EC28中空編碼器模組旋鈕 * 2（上方旋鈕、對焦旋鈕）
+- 型號: MF168
+- 功能: 空心旋轉開關
+- 規格: 小家電智能家居開關直銷
+- 價格: ¥5.00 x 2
+- 連結: [淘宝 EC28 中空編碼器](https://e.tb.cn/h.hyxkUMaRpBBe8c1?tk=BgXh4LoVjfU)
 
 ### 4. 左側上方旋鈕
+
 - 產品: 一般編碼器
 - 狀態: 已有
 
 ### 5. 過片桿
+
 - 狀態: 需另外設計
 - 說明: 模擬傳統膠卷相機過片操作
+
+### 6. 開/關機鍵
+
+- 產品: 一般4腳微動按鍵
+- 功能: 主電源開關 / 喚醒
+- 說明: 與電源管理模組整合使用
+
+### 7. GPIO 擴展
+
+- 產品: 微雪 MCP23017 IO 擴展模塊
+- 型號: CZ193
+- 功能: 透過 I2C 擴展 16 個可用 GPIO
+- 價格: ¥33
+- 連結: [淘宝 MCP23017 IO 擴展](https://e.tb.cn/h.Sa3wzS6ITb7UtHr?tk=jJ8p4q07aGz)
 
 ---
 
 ## 顯示模組
 
 ### 1. 主螢幕 (Live View)
+
 - 產品: 微雪2.4吋彩色LCD模組顯示屏
 - 型號: CZ028
 - 規格: ILI9341液晶屏 / 樹莓派STM32相容
 - 尺寸: 2.4"
 - 功能: 顯示即時影像與相機參數
 - 價格: ¥61.74
-- 連結: https://e.tb.cn/h.hyEM6TevxPaLIh1?tk=R5Vt4LhsPil
+- 連結: [淘宝 微雪 2.4" TFT](https://e.tb.cn/h.hyEM6TevxPaLIh1?tk=R5Vt4LhsPil)
 
 ### 2. 副螢幕 (指針錶盤)
+
 - 產品: 微雪圓形LCD顯示屏
 - 型號: HU293
 - 規格: 0.71吋SPI圓形IPS彩色屏幕
@@ -60,100 +81,109 @@
 - 功能: 顯示 RD-1 風格四指針錶盤
 - 相容: 樹莓派Pico/ESP32
 - 價格: ¥48.02
-- 連結: https://e.tb.cn/h.hBPLkcJJA1y5IsU?tk=7Ql74LS8mGS
+- 連結: [淘宝 微雪 0.71" 圓形 LCD](https://e.tb.cn/h.hBPLkcJJA1y5IsU?tk=7Ql74LS8mGS)
 
 ---
 
 ## 影像模組
 
 ### 1. 相機模組
+
 - 產品: 樹莓派5 Camera Module 3 wide
 - 型號: CZ225
-- 規格: 
-  - 1200萬像素 IMX708感測器
+- 規格:
+  - 1200萬像素 IMX708 感測器
   - 夜視攝像頭
   - 自動對焦功能
   - 75度廣角基礎版
 - 價格: ¥129.00
 - 服務: 7天無理由退貨
-- 連結: https://e.tb.cn/h.hypSSE4KDrC8oD3?tk=vUre4LhyFo5
+- 連結: [淘宝 Camera Module 3 wide](https://e.tb.cn/h.hypSSE4KDrC8oD3?tk=vUre4LhyFo5)
 
 ---
 
 ## 主板與擴展
 
 ### 1. 主板
+
 - 產品: CM4 (Compute Module 4)
 - 狀態: 已有
 
 ### 2. 擴展板
+
 - 產品: 樹莓派CM4/CM5 超迷你擴展板
 - 型號: HU006
 - 型式: CM4 IO Board CM4-NANO-A/B/C
 - 價格: ¥86.00 (限時淘金幣抵¥2.0)
-- 連結: https://e.tb.cn/h.hBVLTUcpmH0xXDo?tk=beT54LoiMHo
+- 連結: [淘宝 CM4-NANO 擴展板](https://e.tb.cn/h.hBVLTUcpmH0xXDo?tk=beT54LoiMHo)
 
 ---
 
 ## 供電系統
 
 ### 1. 電源管理模組
+
 - 產品: Type-C行動電源模組
 - 規格: 紫色單C+U口，C口支援輸入輸出
 - 功能: 充電 + 供電管理
 - 價格: ¥4.15
 
 ### 2. 鋰電池
+
 - 產品: 18650鋰電池帶線
 - 型號: CZ321
-- 規格: 
+- 規格:
   - 電壓: 3.7V/7.4V/12V
   - 用途: 電動牙刷音響唱戲機充電動力電池組
 - 價格: ¥24.00
-- 連結: https://e.tb.cn/h.hBtsw95iLUbgZtE?tk=z3zX4LLlKE3
+- 連結: [淘宝 18650 電池](https://e.tb.cn/h.hBtsw95iLUbgZtE?tk=z3zX4LLlKE3)
 
 ### 3. 電量模組
+
 - 價格: NT$111
-- 連結: https://tw.shp.ee/1W41yjE
+- 連結: [商品頁 (台灣)](https://tw.shp.ee/1W41yjE)
 
 ---
 
 ## 閃光燈系統
 
 ### 1. 閃燈模組
+
 - 產品: 閃光燈集成模組
 - 型號: MF287
-- 規格: 
-  - 供電: 3.7VDC鋰電池
+- 規格:
+  - 供電: 3.7VDC 鋰電池
   - 功率: 10WS
   - 觸發: 信號觸發智能關機
 - 價格: ¥30.00
-- 連結: https://e.tb.cn/h.hBV9pEXlwoKOu6j?tk=kSnd4Lofo8l
+- 連結: [淘宝 閃光燈 MF287](https://e.tb.cn/h.hBV9pEXlwoKOu6j?tk=kSnd4Lofo8l)
 
 ---
 
 ## 其他模組
 
 ### 1. RTC 即時時鐘模組
+
 - 產品: DS1302/3231/1307 PCF8563實時時鐘模組
 - 型號: HU591
 - 功能: 時間掉電走時存儲計時帶電
 - 價格: ¥8.50
 - 服務: 7天無理由退貨
-- 連結: https://e.tb.cn/h.hBd6YRWY5o6k7id?tk=ZbIy4LLlgH8
+- 連結: [淘宝 RTC 模組](https://e.tb.cn/h.hBd6YRWY5o6k7id?tk=ZbIy4LLlgH8)
 
 ### 2. 儲存裝置
-產品1: 讀卡器手機tf內存擴展存儲轉接
-型號: MF278
-規格: typec安卓通用便攜otg多功能相機高速3.0轉換器
-價格: ¥5.5
-連結: [淘宝 读卡器手机tf内存扩展存储转接](https://e.tb.cn/h.hAOLJVC6gxus9bR?tk=qT2K4q07RUv)
 
-產品2: 閃迪內存卡64g手機監控攝像頭高速sd卡
-型號: CZ225
-規格: tf卡128g
-價格: ¥29
-連結: [淘宝 闪迪内存卡64g手机监控摄像头高速sd卡](https://e.tb.cn/h.Sa3y9AK0BbFtMA5?tk=AhU84q0RVxH)
+- 產品1: 讀卡器手機 tf 內存擴展存儲轉接
+- 型號: MF278
+- 規格: type-c 安卓通用便攜 OTG 多功能相機高速 3.0 轉換器
+- 價格: ¥5.5
+- 連結: [淘宝 讀卡器 MF278](https://e.tb.cn/h.hAOLJVC6gxus9bR?tk=qT2K4q07RUv)
+
+- 產品2: 閃迪內存卡 64GB
+- 型號: CZ225
+- 規格: TF 卡 / 128GB 可選
+- 價格: ¥29
+- 連結: [淘宝 閃迪 64GB SD](https://e.tb.cn/h.Sa3y9AK0BbFtMA5?tk=AhU84q0RVxH)
 
 ---
 
@@ -184,16 +214,12 @@
 ## 更新變更
 
 與原版本相比的主要變更:
+
 1. 上方旋鈕: 更換為更便宜的 EC28 編碼器 (¥14→¥5)
-
 2. 擴展板: 更換為超迷你版本 (¥94.08→¥86)
-
 3. 鋰電池: 更換為 18650 電池組 (¥22.1→¥24)
-
 4. 新增閃燈模組: ¥30 閃光燈集成模組
-
 5. 新增 RTC 模組: ¥8.5 即時時鐘模組
-
 6. 新增電量模組: NT$111 電量管理模組
 
 ---
@@ -218,22 +244,17 @@
 
 1. 優先順序:
 
-  - 第一批: 核心模組 (主板、螢幕、相機)
-
-  - 第二批: 控制模組 (按鈕、編碼器)
-
-  - 第三批: 供電系統 (電池、充電模組)
-
-  - 第四批: 擴充功能 (閃光燈、RTC)
+    - 第一批: 核心模組 (主板、螢幕、相機)
+    - 第二批: 控制模組 (按鈕、編碼器)
+    - 第三批: 供電系統 (電池、充電模組)
+    - 第四批: 擴充功能 (閃光燈、RTC)
 
 2. 批量採購: 同一賣家商品可合併訂單降低運費
 
 3. 備用考量: 關鍵元件建議採購備份
 
-  - 快門按鈕 (易損耗)
-
-  - 編碼器 (機械磨損)
-
-  - 顯示屏 (運輸易損)
+    - 快門按鈕 (易損耗)
+    - 編碼器 (機械磨損)
+    - 顯示屏 (運輸易損)
 
 4. 測試規劃: 分模組測試後再整合，避免問題擴大

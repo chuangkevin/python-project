@@ -64,12 +64,26 @@
     },
     {
       "category": "按鈕",
-      "subtype": "電源按鈕",
+      "subtype": "開/關機鍵",
       "spec": {
-        "type": "獨立按鈕",
+        "type": "4-pin microswitch",
         "function": "主電源開關 / 喚醒",
-        "notes": "需與電源管理模組整合"
+        "notes": "一般4腳微動按鍵，需與電源管理模組整合"
       }
+    },
+    {
+      "category": "擴展",
+      "subtype": "GPIO 擴展",
+      "model": "CZ193",
+      "product_title": "微雪 MCP23017 IO 擴展模塊 16個外擴IO口",
+      "link": "https://e.tb.cn/h.Sa3wzS6ITb7UtHr?tk=jJ8p4q07aGz",
+      "spec": {
+        "type": "I2C IO expander",
+        "chip": "MCP23017",
+        "io_count": 16,
+        "notes": "I2C 控制接口，含電平轉換選項"
+      },
+      "price_rmb": 33
     },
     {
       "category": "控制旋鈕",
@@ -94,6 +108,7 @@
       }
     },
     {
+
       "category": "控制旋鈕",
       "subtype": "左側上方旋鈕",
       "status": "已有",
